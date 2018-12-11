@@ -1,0 +1,38 @@
+---
+Language:        Cpp
+BasedOnStyle:  Google
+AccessModifierOffset: -2
+AlwaysBreakTemplateDeclarations: Yes
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializers: AfterColon
+ColumnLimit:     100
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+DerivePointerAlignment: true
+IncludeBlocks: Regroup
+IncludeCategories: 
+  - Regex:           '^"'
+    Priority:        1
+  - Regex:           '^<sw/'
+    Priority:        2
+  - Regex:           '^<.*\.h>'
+    Priority:        4
+  - Regex:           '^<.*\.hpp>'
+    Priority:        4
+  - Regex:           '^<[a-zA-Z0-9_/-]*>'
+    Priority:        5
+  - Regex:           '.*'
+    Priority:        3
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+KeepEmptyLinesAtTheStartOfBlocks: false
+PenaltyBreakBeforeFirstCallParameter: 1
+PenaltyReturnTypeOnItsOwnLine: 200
+PointerAlignment: Left
+Standard:        Cpp11
+
+...
+
