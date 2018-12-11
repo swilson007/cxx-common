@@ -49,19 +49,15 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+#include "Types.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 
-#ifndef SCW_FIXEDWIDTH_INT_LITERALS_NAMESPACE
-#  define SCW_FIXEDWIDTH_INT_LITERALS_NAMESPACE scw
-#endif
-
-namespace SCW_FIXEDWIDTH_INT_LITERALS_NAMESPACE {
+namespace scw {
 namespace intliterals {
 namespace detail {
-
-using u64 = std::uint64_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Calculates value*value
@@ -155,6 +151,8 @@ SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int16_t, "int16 literal out of range. Not
 SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int32_t, "int8 literal out of range. Note that the value of numeric_limits<int32>::min() is not supported");
 SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int64_t, "int64 literal out of range. Note that the value of numeric_limits<int64>::min() is not supported");
 SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(size_t, "size_t literal out of range.");
+SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uintx, "uintx literal out of range.");
+SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(intx, "intx literal out of range.");
 // clang-format on
 
 }  // namespace detail
@@ -172,12 +170,14 @@ SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u8, uint8_t);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u16, uint16_t);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u32, uint32_t);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u64, uint64_t);
+SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_ux, uintx);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i8, int8_t);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i16, int16_t);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i32, int32_t);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i64, int64_t);
+SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_ix, intx);
 SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_z, size_t);
 // clang-format on
 
 }  // namespace intliterals
-}  // namespace SCW_FIXEDWIDTH_INT_LITERALS_NAMESPACE
+}  // namespace scw

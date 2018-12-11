@@ -82,7 +82,7 @@
 #endif
 
 // Setup well-known 32/64 bit defs.
-// SCW_CPU_32BIT or SCW_CPU_64BIT
+// SCW_ARCH_32BIT or SCW_ARCH_64BIT
 // SCW: well... I went to try out some 32-bit code on my mac and it complained that 32-bit
 //  is deprecated. I guess that's where we're at. I'll take! Maybe I can just remove these
 #if !defined(SCW_SIZEOF_POINTER)
@@ -92,13 +92,11 @@
 #  if UINTPTR_MAX == UINT32_MAX
 #    error 32-bit not supported
 #    define SCW_ARCH_32BIT 1
-#    define SCW_CPU_32BIT 1
 #    define SCW_SIZEOF_POINTER 4
 #    define SCW_ALIGNED_SIZE 4
 #    define SCW_MAX_POD_ALIGN_SIZE 8
 #  elif UINTPTR_MAX == UINT64_MAX
 #    define SCW_ARCH_64BIT 1
-#    define SCW_CPU_64BIT 1
 #    define SCW_SIZEOF_POINTER 8
 #    define SCW_ALIGNED_SIZE 8
 #    define SCW_MAX_POD_ALIGN_SIZE 8
