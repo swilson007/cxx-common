@@ -42,9 +42,6 @@ using namespace scw::intliterals;
 ///
 /// No allocations are performed when creating any instances.  The size will be computed
 /// lazily for the case where a const char* was given.
-///
-/// To help ensure proper use of the wrapper, ie. that it isn't held for longer than any type
-/// of temporary scope, it is non-copyable/non-movable
 ////////////////////////////////////////////////////////////////////////////////
 class StringWrapper {
   static constexpr sizex kUnsetSize = ~0_z;

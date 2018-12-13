@@ -7,9 +7,12 @@ AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
+BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
 ColumnLimit:     100
+CompactNamespaces: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 DerivePointerAlignment: true
 IncludeBlocks: Regroup
@@ -26,13 +29,18 @@ IncludeCategories:
     Priority:        5
   - Regex:           '.*'
     Priority:        3
-IndentCaseLabels: true
+IndentCaseLabels: false
+IndentWrappedFunctionNames: false
 IndentPPDirectives: AfterHash
 KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
 PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyReturnTypeOnItsOwnLine: 200
 PointerAlignment: Left
 Standard:        Cpp11
+TabWidth: 8
+UseTab: Never
 
 ...
 
