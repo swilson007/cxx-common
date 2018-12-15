@@ -132,14 +132,7 @@ public:
     // Move items from old buffer to new buffer
     auto newAddr = allocate(newCount);
     if (oldAddr != nullptr) {
-      // Move construct items from the old to the new memory region
-      // SCW: Consider: should maybe move-construct and delete as we go in case
-      //  objects are large, or they are maintaining high-watermark internal counts
-      move_copy_ops::moveConstructItems(newAddr, oldAddr, existingCount);
-
-      // Delete items from the old to the new memory region
-      move_copy_ops::destructItems(oldAddr, existingCount);
-
+      move_copy_ops::moveConstructAndDeleteItems(newAddr, oldAddr, existingCount);
       deallocate(oldAddr, oldCount);
     }
 

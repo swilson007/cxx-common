@@ -140,7 +140,7 @@ sizex doVectorPerf(sizex iterations) {
   return count;
 }
 
-#define TEST_PERFORMANCE 1
+#define TEST_PERFORMANCE 0
 #if TEST_PERFORMANCE
 TEST(VectorTest, vecPerf) {
 #  if SCW_DEBUG
@@ -182,7 +182,7 @@ struct NonTrivialFoo {
   static size_t sMoves;
   static size_t sActive;
   NonTrivialFoo() : id(sId++), rand(gRandDist(gRandEngine)) {
-#if SCW_DEBUG
+#if DEV_LOG
     std::cout << "NTF: ctor: this=" << this << std::endl;
 #endif
     rand2 = gRandDist(gRandEngine);
@@ -191,7 +191,7 @@ struct NonTrivialFoo {
   }
 
   NonTrivialFoo(const NonTrivialFoo& that) noexcept {
-#if SCW_DEBUG
+#if DEV_LOG
     std::cout << "NTF: copy-ctor: this=" << this << std::endl;
 #endif
     this->id = sId++;
@@ -202,7 +202,7 @@ struct NonTrivialFoo {
   }
 
   NonTrivialFoo(NonTrivialFoo&& that) noexcept {
-#if SCW_DEBUG
+#if DEV_LOG
     std::cout << "NTF: move-ctor: this=" << this << std::endl;
 #endif
     this->id = sId++;
@@ -213,7 +213,7 @@ struct NonTrivialFoo {
   }
 
   virtual ~NonTrivialFoo() noexcept {
-#if SCW_DEBUG
+#if DEV_LOG
     std::cout << "NTF: dtor: this=" << this << std::endl;
 #endif
     --sActive;

@@ -56,6 +56,12 @@ struct IsMemCopyable :
 using namespace ::scw::detail;
 
 ////////////////////////////////////////////////////////////////////////////////
+/// This class contains move/copy/construct/destruction functions that are useful for
+/// a container class like vector. For the purpose of performance, most of the functions here have
+/// two variants that are matched by enable_if. The variants are for types that are safe to memcpy
+/// (trivially copyable) or not, items that need actual destruction or not, items that have actual
+/// constructors or not, etc.
+///
 template <typename T>
 class MoveCopyOps {
   enum class Destruction { Unused };
@@ -67,6 +73,8 @@ class MoveCopyOps {
 
 public:
   ////////////////////////////////////////////////////////////////////////////////
+  /// Destruct count items starting at dest. Items are destructed in forward order.
+  /// TODO: Reverse order?
   template <typename U = T, typename std::enable_if_t<NeedsDestruction<U>::value, Destruction> =
                                 Destruction::Unused>
   inline static void destructItems(T* dest, sizex count) {
@@ -76,9 +84,11 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// Destruct count items starting at dest. Items are destructed in forward order.
   template <typename U = T, typename std::enable_if_t<!NeedsDestruction<U>::value, NoDestruction> =
                                 NoDestruction::Unused>
   inline static void destructItems(T* dest, sizex count) {
+    /// These type of items require no destruction!
     nop();
   }
 
@@ -96,6 +106,7 @@ public:
   template <typename U = T, typename std::enable_if_t<!NeedsConstruction<U>::value,
                                                       NoConstruction> = NoConstruction::Unused>
   inline static void constructItemsFromItem(T* dest, sizex count, const T& item) {
+    /// These type of items don't need constructor calls
     std::fill(dest, dest + count, item);
   }
 
@@ -113,6 +124,7 @@ public:
   template <typename U = T, typename std::enable_if_t<!NeedsConstruction<U>::value,
                                                       NoConstruction> = NoConstruction::Unused>
   inline static void constructDefaultItems(T* dest, sizex count) {
+    /// These type of items are safely set to 0 on construction
     std::memset(dest, 0, count * sizeof(T));
   }
 
@@ -129,6 +141,7 @@ public:
   template <typename U = T,
             typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
   inline static void moveAssignItems(T* dest, const T* source, sizex count) {
+    /// These types of items can safely use memcpy
     std::memcpy(dest, source, count * sizeof(T));
   }
 
@@ -145,6 +158,7 @@ public:
   template <typename U = T,
             typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
   inline static void copyAssignItems(T* dest, const T* source, sizex count) {
+    /// These types of items can safely use memcpy
     std::memcpy(dest, source, count * sizeof(T));
   }
 
@@ -161,6 +175,7 @@ public:
   template <typename U = T,
             typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
   inline static void copyConstructItems(T* dest, const T* source, sizex count) {
+    /// These types of items can safely use memcpy
     std::memcpy(dest, source, count * sizeof(T));
   }
 
@@ -178,6 +193,30 @@ public:
   template <typename U = T,
             typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
   inline static void moveConstructItems(T* dest, const T* source, sizex count) {
+    /// These types of items can safely use memcpy for moving
+    std::memcpy(dest, source, count * sizeof(T));
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Move (or copy) 'count' non-trivial items from 'source' to 'dest', and delete
+  /// each item from 'source'
+  template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
+  NotMemCopyable::Unused>
+  inline static void moveConstructAndDeleteItems(T* dest, const T* source, sizex count) {
+    for (sizex i = 0; i < count; ++i) {
+      // Move it from source to dest
+      new (&dest[i]) T(std::move(source[i]));  // Move-ctor
+
+      // And delete the source item now that it's been moved
+      (&source[i])->~T();
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  template <typename U = T,
+    typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
+  inline static void moveConstructAndDeleteItems(T* dest, const T* source, sizex count) {
+    /// These types of items can safely use memcpy for moving
     std::memcpy(dest, source, count * sizeof(T));
   }
 };
