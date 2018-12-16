@@ -168,7 +168,7 @@ public:
 private:
   ////////////////////////////////////////////////////////////////////////////////
   template <typename InitFunc>
-  inline T& doGet(const InitFunc& initFunc) {
+  inline T& doGet(const InitFunc& initFunc) const {
     if (mValue == kInvalidValue) {
       mValue = initFunc();
       Assert(mValue != kInvalidValue);  // Don't set the value to the invalid value ever (I hope)

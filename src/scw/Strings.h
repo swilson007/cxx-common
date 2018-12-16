@@ -38,7 +38,9 @@ using namespace scw::intliterals;
 /// std::string&, and always avoiding a copy. Unlike std::string_view, StringWrapper
 /// strings are always null-terminated which is key for their use case.
 ///
-/// Wrapped string is undefined if given a nullptr for const char* case.
+/// Wrapped string is undefined if given a nullptr for const char* case. For an empty
+/// string, the size of the underlying buffer must be at least 1 and contain a '\0'
+/// as the first character.
 ///
 /// No allocations are performed when creating any instances.  The size will be computed
 /// lazily for the case where a const char* was given.
@@ -97,7 +99,11 @@ public:
   }
 
   sizex length() const { return size(); }
-  bool empty() const { return size() == 0; }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// A string will be deemed empty if 1) the first char is '\0', or 2) if the size is zero. We
+  /// include (1) so that we can avoid checking the size if possible (since the size is lazy)
+  bool empty() const { return data()[0] == '\0' || size() == 0; }
 
   // Compares to const char* and std::string
   // @formatter:off
@@ -120,8 +126,8 @@ private:
   const char* data_ = nullptr;
 
   // Size is lazy because typical usage might be to take a const char* and just pass it to a
-  // function, never using the size of the string. It's mutable because it's lazy
-  mutable LazyValue<sizex, ~0_z> size_;
+  // function, never using the size of the string.
+  LazyValue<sizex, ~0_z> size_;
 };
 
 }  // namespace scw
