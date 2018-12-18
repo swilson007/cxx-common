@@ -150,7 +150,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates a buffer-view of the given unique buffer
-  BufferView(UniqueBuffer& ub) noexcept : BufferView(ub.data(), ub.size()) {}
+  explicit BufferView(UniqueBuffer& ub) noexcept : BufferView(ub.data(), ub.size()) {}
 
   const byte* data() const noexcept { return data_; }
   byte* data() noexcept { return data_; }
@@ -200,4 +200,75 @@ private:
   byte* data_ = nullptr;
   sizex size_ = 0_z;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+/// Wraps a memory buffer and assumes *no* memory ownership.  The buffer is allowed
+/// to be null.
+class ConstBufferView {
+public:
+  ConstBufferView() = default;
+  ConstBufferView(ConstBufferView& that) = default;
+  ConstBufferView& operator=(const ConstBufferView& that) = default;
+  ConstBufferView(ConstBufferView&& that) noexcept = default;
+  ConstBufferView& operator=(ConstBufferView&& that) noexcept = default;
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Creates the BufferView from the buffer. If the buffer is valid (not null), then the
+  /// the size must >= 1. ie, it's invalid (and undefined) to give a non-null buffer with
+  /// size==0
+  ConstBufferView(const byte* data, sizex size) noexcept : data_(data), size_(size) {
+    Assert((data_ == nullptr && size_ == 0) || (data_ != nullptr && size_ > 0));
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Creates a buffer-view of the given unique buffer
+  explicit ConstBufferView(const UniqueBuffer& ub) noexcept : ConstBufferView(ub.data(), ub.size()) {}
+
+  const byte* data() const noexcept { return data_; }
+  sizex size() const noexcept { return size_; }
+  bool empty() const noexcept { return data_ == nullptr; }
+  explicit operator bool() const noexcept { return data_ != nullptr; }
+  const byte& operator[](sizex i) const { return data_[i]; }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Adjust the size bytes represented by the buffer. Note this in no way changes the
+  /// actual buffer, just the size that a caller will associate with the buffer
+  /// Changing the size to greater than the actual sized is undefined.
+  void resize(sizex size) noexcept { size_ = size; }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Clear the buffer. The resultant buffer will be null and size will be 0.
+  void reset() noexcept {
+    data_ = nullptr;
+    size_ = 0;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Advance the buffer by the number of bytes. The underlying buffer is *not* changed.
+  ConstBufferView& operator+=(sizex numBytes) {
+    data_ += numBytes;
+    size_ -= numBytes;
+    return *this;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  void swap(ConstBufferView& that) noexcept {
+    std::swap(data_, that.data_);
+    std::swap(size_, that.size_);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  friend void swap(ConstBufferView& lhs, ConstBufferView& rhs) { lhs.swap(rhs); }
+
+  /// Allow comparison to nullptr
+  friend bool operator==(const ConstBufferView& x, std::nullptr_t) noexcept { return x.empty(); }
+  friend bool operator==(std::nullptr_t, const ConstBufferView& x) noexcept { return x.empty(); }
+  friend bool operator!=(const ConstBufferView& x, std::nullptr_t) noexcept { return !x.empty(); }
+  friend bool operator!=(std::nullptr_t, const ConstBufferView& x) noexcept { return !x.empty(); }
+
+private:
+  const byte* data_ = nullptr;
+  sizex size_ = 0_z;
+};
+
 }  // namespace scw

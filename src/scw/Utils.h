@@ -129,10 +129,10 @@ std::string formatn(const StringWrapper& formatStr, Ts... ts) {
 /// same sizeof(). Note this is "safer" and not "safe" because the results may
 /// still be aliased types, and may violate the Type Aliasing rules. But, the memcpy
 /// approach is supposed to be an acceptable technique to inform the compiler
-/// of what we're doing (over reinterpret_cast).
+/// of what we're doing vs using reinterpret_cast.
 ///
 /// Note that compilers are trained to see through this and produce the same code as
-/// a reinterpret_cast expression
+/// a reinterpret_cast expression.
 template <typename Dest, typename Source>
 inline void saferAlias(Dest& dest, Source&& source) {
   static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same.");
