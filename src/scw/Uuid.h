@@ -22,7 +22,7 @@ public:
   static UuidType create() noexcept;
 
   /// Creates an invalid UUID
-  UuidType() noexcept = default;
+  UuidType() noexcept : bytes_({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {}
 
   /// Creates a UUID from the given bytes.
   explicit UuidType(const std::array<byte, 16>& bytes) noexcept : bytes_(bytes) {}
@@ -55,6 +55,7 @@ public:
     return result;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   /// Determine if the UUID is valid or not. An invalid UUID has all bytes as 0
   inline bool isValid() const {
     auto invalid = Uuid();
