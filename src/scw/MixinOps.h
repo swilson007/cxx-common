@@ -45,13 +45,9 @@ struct LessThanEqualityMixin {
 template <typename T>
 struct CompareMixin {
   friend bool operator<(const T& lhs, const T& rhs) { return lhs.lessThan(rhs); }
-  friend bool operator<=(const T& lhs, const T& rhs) {
-    return lhs.lessThan(rhs) || !(rhs.lessThan(lhs));
-  }
+  friend bool operator<=(const T& lhs, const T& rhs) { return !(rhs.lessThan(lhs)); }
   friend bool operator>(const T& lhs, const T& rhs) { return rhs.lessThan(lhs); }
-  friend bool operator>=(const T& lhs, const T& rhs) {
-    return rhs.lessThan(lhs) || !(lhs.lessThan(rhs));
-  }
+  friend bool operator>=(const T& lhs, const T& rhs) { return !(lhs.lessThan(rhs)); }
 };
 
 }  // namespace scw
