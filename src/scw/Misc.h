@@ -188,8 +188,9 @@ private:
 ///   class MyUint32 : public PodWrapper<u32> { using PodWrapper::PodWrapper; };
 ///
 template <typename T, T kInvalidValue = 0>
-class PodWrapper : public EqualityMixin<PodWrapper<T, kInvalidValue>>,
-                   public CompareMixin<PodWrapper<T, kInvalidValue>> {
+class PodWrapper :
+    public EqualityMixin<PodWrapper<T, kInvalidValue>>,
+    public CompareMixin<PodWrapper<T, kInvalidValue>> {
 public:
   using ValueType = T;
   static constexpr T kInvalid = kInvalidValue;

@@ -201,7 +201,7 @@ public:
   /// Move (or copy) 'count' non-trivial items from 'source' to 'dest', and delete
   /// each item from 'source'
   template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
-  NotMemCopyable::Unused>
+                                NotMemCopyable::Unused>
   inline static void moveConstructAndDeleteItems(T* dest, const T* source, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       // Move it from source to dest
@@ -214,7 +214,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   template <typename U = T,
-    typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
+            typename std::enable_if_t<IsMemCopyable<U>::value, MemCopyable> = MemCopyable::Unused>
   inline static void moveConstructAndDeleteItems(T* dest, const T* source, sizex count) {
     /// These types of items can safely use memcpy for moving
     std::memcpy(dest, source, count * sizeof(T));
