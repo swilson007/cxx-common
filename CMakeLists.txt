@@ -18,7 +18,8 @@ elseif (LINUX)
 endif()
 
 # Project level variables here
-set(ScwSrcRoot ${CMAKE_SOURCE_DIR}/src)
+set(CxxCommonDir ${CMAKE_CURRENT_SOURCE_DIR}) # Useful if we're a sub-module
+set(ScwSrcDir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Setup the shared compiler flags/warnings for all subprojects here
 # Note that in general we're trying to use per-project settings
