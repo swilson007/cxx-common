@@ -1,4 +1,4 @@
-project(test-all)
+project(cxx-common-unit-tests)
 
 # BEGIN: Quick hack for googletest support. For now, using ExternalProject to download it.
 set(DownloadsDir ${CMAKE_BINARY_DIR}/downloads)

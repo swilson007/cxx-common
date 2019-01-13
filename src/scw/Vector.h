@@ -270,6 +270,7 @@ public:
     move_copy_ops::copyConstructItems(end_, &value, 1);
     ++end_;
   }
+
   void push_back(T&& value) {
     autoGrow();
     move_copy_ops::moveConstructItems(end_, &value, 1);
