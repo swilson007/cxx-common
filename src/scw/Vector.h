@@ -265,18 +265,21 @@ public:
     }
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   void push_back(const T& value) {
     autoGrow();
     move_copy_ops::copyConstructItems(end_, &value, 1);
     ++end_;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   void push_back(T&& value) {
     autoGrow();
     move_copy_ops::moveConstructItems(end_, &value, 1);
     ++end_;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   void pop_back() {
     --end_;
     move_copy_ops::destructItems(*end_, 1);
@@ -303,10 +306,10 @@ private:
   /// Call when the size is shrinking. Will destruct items
   void shrinkTo(size_type newCount) {
     Assert(newCount < size());
-    //        inline static void destructItems(T* dest, size_type count) {
-    auto itemsToDestruct = size() - newCount;
-    auto firstItem = size() - itemsToDestruct;
-    move_copy_ops::destructItems(&begin_[firstItem], itemsToDestruct);
+
+    auto destructCount = size() - newCount;
+    auto firstIdx = size() - destructCount;
+    move_copy_ops::destructItems(&begin_[firstIdx], destructCount);
     end_ = begin_ + newCount;
   }
 
@@ -325,187 +328,5 @@ private:
   T* end_;
   T* capacity_;
 };
-
-#if 0
-/// The beginnings of an stl::allocator supporting version of the vector. At this time, I'm not planning to finish it.
-/// For an allocator based vector, use std::vector
-
-////////////////////////////////////////////////////////////////////////////////
-/// A vector with a bit more flexibility/efficiency than std::vector for POD types.
-/// - Does not support an allocator.
-/// - Supports capacity setting on construction
-/// - *Not* specialized for 'bool' space efficiency, so use std::vector for that
-/// - Can consume a std::unique_ptr<T> for no-copy semantics
-/// - Conforms to the std::vector interface where possible.
-/// - data() returns nullptr for empty vector
-////////////////////////////////////////////////////////////////////////////////
-template <typename T, class Allocator = std::allocator<T>, sizex kCapacityAlignmentSize = 16>
-class VectorBase {
-public:
-    using value_type = T;
-    using size_type = size_t;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using allocator_type = Allocator;
-
-    ////////////////////////////////////////////////////////////////////////////////
-    ~VectorBase() {
-        if (begin_ != nullptr) {
-            allocator().deallocate(begin_, capacity());
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    VectorBase() noexcept (std::is_nothrow_default_constructible<allocator_type>::value) :
-#  if COMPRESSED_PAIR
-        begin_(nullptr), end_(nullptr), capAllocPair_(nullptr) {}
-#  else
-        begin_(nullptr), end_(nullptr), capacity_(nullptr) {}
-#  endif
-
-    explicit VectorBase(const Allocator& allocator);
-
-    VectorBase(const VectorBase& that);
-    VectorBase(const VectorBase& that, const Allocator& allocator);
-    VectorBase(VectorBase&& that) noexcept;
-    VectorBase(VectorBase&& that, const Allocator& allocator) noexcept;
-
-    explicit VectorBase(size_type count, const Allocator& allocator = Allocator());
-    VectorBase(size_type count, size_type capacity, const Allocator& = Allocator());
-    VectorBase(size_type count, const value_type& value, const Allocator& = Allocator());
-    VectorBase(size_type count, const value_type& value, size_type capacity, const Allocator& = Allocator());
-
-    explicit VectorBase(std::initializer_list<T> init, const Allocator& allocator = Allocator());
-    VectorBase(std::initializer_list<T> init, size_type capacity, const Allocator& = Allocator());
-
-    // Assume ownership
-    explicit VectorBase(UniqueBuffer buffer, const Allocator& = Allocator());
-    VectorBase(std::unique_ptr<T> buffer, size_type bufferSize, const Allocator& = Allocator());
-
-    VectorBase& operator=(const VectorBase& that);
-    VectorBase& operator=(VectorBase&& that) noexcept;
-
-    void assign(size_type count, const T& value);
-    template <class InputIt>
-    void assign(InputIt first, InputIt last);
-    void assign(std::initializer_list<T> ilist);
-
-    reference at(size_type pos);
-    const_reference at(size_type pos) const;
-    reference front(size_type pos);
-    const_reference front(size_type pos) const;
-    reference back(size_type pos);
-    const_reference back(size_type pos) const;
-
-    reference operator[](size_type pos) { return begin_[pos]; }
-    const_reference operator[](size_type pos) const { return begin_[pos]; }
-
-    T* data() noexcept { return begin_; }
-    const T* data() const noexcept { return begin_; }
-
-    inline size_type size() const noexcept {
-        auto result = static_cast<size_type>(end_ - begin_);
-        return result;
-    }
-
-    size_type max_size() const noexcept;
-    inline bool empty() const { return begin_ == end_; }
-
-    template <typename U = T>
-    typename std::enable_if<std::is_trivially_copyable<U>::value, void>::type
-    inline copyBuffer(U* dest, U* source, size_type count) {
-        std::memcpy(dest, source, count * sizeof(U));
-    }
-
-    template <typename U = T>
-    typename std::enable_if<!std::is_trivially_copyable<U>::value, void>::type
-    inline copyBuffer(U* dest, U* source, size_type count) {
-        // Need to do one by one move
-        T* oldBuffer = begin_;
-        for (size_type i = 0; i < count; ++i) {
-            dest[i] = std::move(source[i]);
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    void reserve(size_type newCapacity) {
-        // Per std::vector, no shrinking allowed
-        if (newCapacity < capacity()) {
-            return;
-        }
-
-        // Find the actual size to allocate
-        auto & alloc = allocator();
-        auto newBuffer = alloc.allocate(newCapacity * sizeof(T));
-        auto oldSize = size();
-        auto oldCapacity = capacity();
-        Assert(oldCapacity == 0 ? (begin_ == nullptr) : (begin_ != nullptr));
-
-        // Move items from old buffer to new buffer
-        copyBuffer(newBuffer, begin_, oldSize);
-
-        // Done with old buffer
-        if (oldCapacity > 0) {
-            alloc.deallocate(begin_, oldCapacity);
-        }
-
-        // Finally we can update our internal state
-        begin_ = newBuffer;
-        end_ = newBuffer + oldSize;
-        bufferEnd() = newBuffer + newCapacity;
-    }
-
-    inline size_type capacity() const {
-        auto result = static_cast<size_type>(bufferEnd() - begin_);
-        return result;
-    }
-
-    void clear() noexcept;
-    void resize(size_type count);
-    void resize(size_type count, const value_type& value);
-
-    void push_back(const T& value) {
-        autoGrow();
-        *end_ = value;
-        ++end_;
-    }
-    void push_back(T&& value) {
-        autoGrow();
-        *end_ = std::move(value);
-        ++end_;
-    }
-    void pop_back();
-
-    template <class... Args>
-    reference emplace_back(Args&& ... args);
-
-private:
-    /// For now, to grow we'll just double our size. TODO: Think about this
-    inline void autoGrow() {
-        if (end_ == bufferEnd()) {
-            reserve(capacity() * 2);
-        }
-    }
-
-private:
-    T* begin_;
-    T* end_;
-
-#  if COMPRESSED_PAIR
-    // This pair contains our buffer end an our allocator
-    ::boost::compressed_pair<T*, Allocator> capAllocPair_;
-
-    inline T*& bufferEnd() { return capAllocPair_.first(); }
-    inline T* const& bufferEnd() const { return capAllocPair_.first(); }
-    inline Allocator& allocator() { return capAllocPair_.second(); }
-#  else
-    T* capacity_;
-    Allocator allocator_;
-    inline T*& bufferEnd() { return capacity_; }
-    inline T* const& bufferEnd() const { return capacity_; }
-    inline Allocator& allocator() { return allocator_; }
-#  endif
-};
-#endif
 
 }  // namespace scw
