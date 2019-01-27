@@ -75,50 +75,25 @@ private:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Basic scope-guard. Always executes function, can't be moved or copied.
+/// Moveable scope-guard. Can't be copied. Won't execute function after being moved.
 template <typename Func>
 class ScopeGuard {
 public:
-  explicit ScopeGuard(Func&& f) : func_(std::forward(f)) {}
-  ScopeGuard(ScopeGuard&& that) = delete;
-  ScopeGuard& operator=(ScopeGuard&& that) = delete;
+  explicit ScopeGuard(Func&& f) : func_(f) {}
   ScopeGuard(const ScopeGuard& that) = delete;
   ScopeGuard& operator=(const ScopeGuard& that) = delete;
 
-  ~ScopeGuard() { func_(); }
-
-private:
-  Func func_;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// Usage: auto scopeGuard1 = makeScopeGuard([](){ dosomething(); });
-template <typename Func>
-ScopeGuard<Func> makeScopeGuard(Func&& f) {
-  return ScopeGuard<Func>(std::forward<Func>(f));
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Moveable scope-guard. Can't be copied. Won't execute function after being moved.
-template <typename Func>
-class MoveableScopeGuard {
-public:
-  explicit MoveableScopeGuard(Func&& f) : func_(std::forward(f)) {}
-
-  MoveableScopeGuard(const MoveableScopeGuard& that) = delete;
-  MoveableScopeGuard& operator=(const MoveableScopeGuard& that) = delete;
-
-  MoveableScopeGuard(MoveableScopeGuard&& that) : func_(that.func_) {
+  ScopeGuard(ScopeGuard&& that) : func_(that.func_) {
     execute_ = std::exchange(that.execute_, false);
   }
 
-  MoveableScopeGuard& operator=(MoveableScopeGuard&& that) {
+  ScopeGuard& operator=(ScopeGuard&& that) {
     func_ = std::move(that.func_);
     execute_ = std::exchange(that.execute_, false);
     return *this;
   }
 
-  ~MoveableScopeGuard() {
+  ~ScopeGuard() {
     if (execute_) {
       func_();
     }
@@ -132,8 +107,8 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 /// Usage: auto scopeGuard1 = makeScopeGuard([](){ dosomething(); });
 template <typename Func>
-ScopeGuard<Func> makeMoveableScopeGuard(Func&& f) {
-  return MoveableScopeGuard<Func>(std::forward<Func>(f));
+ScopeGuard<Func> makeScopeGuard(Func&& f) {
+  return ScopeGuard<Func>(std::forward<Func>(f));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

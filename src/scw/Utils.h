@@ -78,6 +78,8 @@ inline constexpr char const* toHexChar(byte b) {
 /// sprintf style string formatter that places results into the provided buffer. sprintf
 /// will be called at most once.
 ///
+/// TODO: Reevaluate this and move to {fmt}
+///
 /// @param output Buffer to output to
 /// @param output Length in bytes of the buffer
 /// @return result of underlying call to snprintf
@@ -107,6 +109,9 @@ int formatInto(char* output, sizex outputSize, const StringWrapper& format, Ts..
 
 ////////////////////////////////////////////////////////////////////////////////
 /// sprintf style string formatter capped at maxLength.  This will call std::snprintf once.
+///
+/// TODO: Reevaluate this and move to {fmt}
+///
 ///
 /// @param maxLength Maximum length of the resultant string, NOT including the null terminator
 ///                Thus the resultant string will be "result.length() <= maxSize"
