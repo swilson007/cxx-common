@@ -94,7 +94,7 @@ public:
   /// Extract the buffer, relinquishing ownership
   byte* release() noexcept {
     size_ = 0;
-    return data_;
+    return std::exchange(data_, nullptr);
   }
 
   /// Clear the buffer. This will deallocate if it's currently set
