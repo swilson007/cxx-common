@@ -113,10 +113,10 @@ public:
   friend bool operator!=(const StringWrapper& lhs, const char* rhs) noexcept { return std::strcmp(lhs.data_, rhs) != 0; }
   friend bool operator==(const StringWrapper& lhs, const std::string& rhs) noexcept { return std::strcmp(lhs.data_, rhs.c_str()) == 0; }
   friend bool operator!=(const StringWrapper& lhs, const std::string& rhs) noexcept { return std::strcmp(lhs.data_, rhs.c_str()) != 0; }
-  friend bool operator==(const char* lhs, StringWrapper& rhs) noexcept { return std::strcmp(lhs, rhs.data_) == 0; }
-  friend bool operator!=(const char* lhs, StringWrapper& rhs) noexcept { return std::strcmp(lhs, rhs.data_) != 0; }
-  friend bool operator==(const std::string& lhs, StringWrapper& rhs) noexcept { return std::strcmp(lhs.c_str(), rhs.data_) == 0; }
-  friend bool operator!=(const std::string& lhs, StringWrapper& rhs) noexcept { return std::strcmp(lhs.c_str(), rhs.data_) != 0; }
+  friend bool operator==(const char* lhs, const StringWrapper& rhs) noexcept { return std::strcmp(lhs, rhs.data_) == 0; }
+  friend bool operator!=(const char* lhs, const StringWrapper& rhs) noexcept { return std::strcmp(lhs, rhs.data_) != 0; }
+  friend bool operator==(const std::string& lhs, const StringWrapper& rhs) noexcept { return std::strcmp(lhs.c_str(), rhs.data_) == 0; }
+  friend bool operator!=(const std::string& lhs, const StringWrapper& rhs) noexcept { return std::strcmp(lhs.c_str(), rhs.data_) != 0; }
 
   friend std::ostream& operator<<(std::ostream& outs, const StringWrapper& sw) { return outs << sw.c_str(); }
   // clang-format on

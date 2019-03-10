@@ -228,40 +228,33 @@ constexpr T PodWrapper<T, kInvalidValue>::kInvalid;
 /// Operators for bitfields. Generally best to declare this just after the enum,
 /// or just after the class decl that contains an enum.
 ///
-/// asPod() function is just less typing than the static_cast approach to get the enum out as
-/// the underlying integral (POD) type
+/// The asPod() function is just less typing than the static_cast approach to get
+/// the enum out as the underlying integral (POD) type
 #define SCW_DEFINE_ENUM_BITFIELD_OPERATORS(T)                                     \
   static_assert(std::is_unsigned<std::underlying_type<T>::type>::value,           \
                 "Bitmask enums must use unsigned types");                         \
-  std::underlying_type<T>::type asPod(T enumValue) {                              \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    return static_cast<PodType>(enumValue);                                       \
+  constexpr std::underlying_type<T>::type asPod(T enumValue) {                    \
+    return static_cast<std::underlying_type<T>::type>(enumValue);                 \
   }                                                                               \
-  T operator|(T lhs, T rhs) {                                                     \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    return static_cast<T>(static_cast<PodType>(lhs) | static_cast<PodType>(rhs)); \
+  constexpr T operator|(T lhs, T rhs) {                                           \
+    return static_cast<T>(asPod(lhs) | asPod(rhs));                               \
   }                                                                               \
-  T operator&(T lhs, T rhs) {                                                     \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    return static_cast<T>(static_cast<PodType>(lhs) & static_cast<PodType>(rhs)); \
+  constexpr T operator&(T lhs, T rhs) {                                           \
+    return static_cast<T>(asPod(lhs) & asPod(rhs));                               \
   }                                                                               \
-  T operator^(T lhs, T rhs) {                                                     \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    return static_cast<T>(static_cast<PodType>(lhs) ^ static_cast<PodType>(rhs)); \
+  constexpr T operator^(T lhs, T rhs) {                                           \
+    return static_cast<T>(asPod(lhs) ^ asPod(rhs));                               \
   }                                                                               \
-  T& operator|=(T& lhs, T rhs) {                                                  \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    lhs = static_cast<T>(static_cast<PodType>(lhs) | static_cast<PodType>(rhs));  \
+  inline T& operator|=(T& lhs, T rhs) {                                           \
+    lhs = static_cast<T>(asPod(lhs) | asPod(rhs));                                \
     return lhs;                                                                   \
   }                                                                               \
-  T& operator&=(T& lhs, T rhs) {                                                  \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    lhs = static_cast<T>(static_cast<PodType>(lhs) & static_cast<PodType>(rhs));  \
+  inline T& operator&=(T& lhs, T rhs) {                                           \
+    lhs = static_cast<T>(asPod(lhs) & asPod(rhs));                                \
     return lhs;                                                                   \
   }                                                                               \
-  T& operator^=(T& lhs, T rhs) {                                                  \
-    using PodType = typename std::underlying_type<T>::type;                       \
-    lhs = static_cast<T>(static_cast<PodType>(lhs) ^ static_cast<PodType>(rhs));  \
+  inline T& operator^=(T& lhs, T rhs) {                                           \
+    lhs = static_cast<T>(asPod(lhs) ^ asPod(rhs));                                \
     return lhs;                                                                   \
   }                                                                               \
   static_assert(true, "Put a semicolon after the macro definition!")
