@@ -39,11 +39,6 @@
 namespace scw {
 
 ////////////////////////////////////////////////////////////////////////////////
-class NotImplementedError : public std::logic_error {
-  using logic_error::logic_error;
-};
-
-////////////////////////////////////////////////////////////////////////////////
 /// Convert a thread id to an integer
 inline sizex toInteger(const decltype(std::this_thread::get_id())& threadId) {
   sizex result = std::hash<std::thread::id>{}(threadId);
