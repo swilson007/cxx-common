@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-#if SCW_POSIX
+#if SW_POSIX
 #  include <sys/types.h>
 #  include <unistd.h>
 #endif
@@ -31,7 +31,7 @@
 /// Contains compile time system information.
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace scw { namespace system {
+namespace sw { namespace system {
 
 ////////////////////////////////////////////////////////////////////////////////
 enum class SystemPosix : u8 {
@@ -107,7 +107,7 @@ inline std::ostream& operator<<(std::ostream& outs, SystemPlatform v) {
 
 ////////////////////////////////////////////////////////////////////////////////
 template <SystemPosix Posix, SystemPlatform Platform, SystemArch Arch, sizex kArchPointerSize>
-struct SystemInfo {
+struct SystemTraits {
   static constexpr SystemPosix kPosix = Posix;
   static constexpr SystemPlatform kPlatform = Platform;
   static constexpr SystemArch kArch = Arch;
@@ -121,30 +121,30 @@ struct SystemInfo {
   static constexpr bool isPosix() { return kIsPosix; };
 };
 
-#if SCW_POSIX
+#if SW_POSIX
 constexpr SystemPosix kThisPosix = SystemPosix::Enabled;
 #else
 constexpr SystemPosix kThisPosix = SystemPosix::Disabled;
 #endif
 
-#if SCW_MACOS
+#if SW_MACOS
 constexpr SystemPlatform kThisPlatform = SystemPlatform::MacOs;
-#elif SCW_LINUX
+#elif SW_LINUX
 constexpr SystemPlatform kThisPlatform = SystemPlatform::Linux;
-#elif SCW_WINDOWS
+#elif SW_WINDOWS
 constexpr SystemPlatform kThisPlatform = SystemPlatform::Windows;
 #else
 #  error TODO
 #endif
 
 /// Setup each current system value
-#if SCW_ARCH_32BIT
+#if SW_ARCH_32BIT
 constexpr SystemArch kThisArch = SystemArch::Bits32;
 #else
 constexpr SystemArch kThisArch = SystemArch::Bits64;
 #endif
 
 /// Define the global system
-using ThisSystem = SystemInfo<kThisPosix, kThisPlatform, kThisArch, SCW_SIZEOF_POINTER>;
+using ThisSystemTraits = SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>;
 
-}}  // namespace scw::system
+}}  // namespace sw::system

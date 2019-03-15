@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace scw {
+namespace sw {
 
 using namespace intliterals;
 
@@ -145,7 +145,7 @@ public:
   /// the size must >= 1. ie, it's invalid (and undefined) to give a non-null buffer with
   /// size==0
   BufferView(byte* data, sizex size) noexcept : data_(data), size_(size) {
-    Assert((data_ == nullptr && size_ == 0) || (data_ != nullptr && size_ > 0));
+    SW_ASSERT((data_ == nullptr && size_ == 0) || (data_ != nullptr && size_ > 0));
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -217,7 +217,7 @@ public:
   /// the size must >= 1. ie, it's invalid (and undefined) to give a non-null buffer with
   /// size==0
   ConstBufferView(const byte* data, sizex size) noexcept : data_(data), size_(size) {
-    Assert((data_ == nullptr && size_ == 0) || (data_ != nullptr && size_ > 0));
+    SW_ASSERT((data_ == nullptr && size_ == 0) || (data_ != nullptr && size_ > 0));
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -271,4 +271,4 @@ private:
   sizex size_ = 0_z;
 };
 
-}  // namespace scw
+}  // namespace sw

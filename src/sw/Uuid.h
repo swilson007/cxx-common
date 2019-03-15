@@ -18,22 +18,22 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "System.h"
+#include "SystemTraits.h"
 #include "Utils.h"
 
 #include <array>
 #include <iostream>
 
-namespace scw {
+namespace sw {
 
-template <typename System = system::ThisSystem>
+template <typename SystemTraits = system::ThisSystemTraits>
 class UuidType;
 using Uuid = UuidType<>;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Class that represents a UUID
 ////////////////////////////////////////////////////////////////////////////////
-template <typename System>
+template <typename SystemTraits>
 class UuidType {
 public:
   /// Creates a random UUID
@@ -94,19 +94,19 @@ private:
   std::array<byte, 16> bytes_ = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 };
 
-}  // namespace scw
+}  // namespace sw
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Per-OS implementation.
 ///
-/// SCW: I really don't like including OS headers here, but no other way to do this
+/// SW: I really don't like including OS headers here, but no other way to do this
 ///  for "header-only".
 ////////////////////////////////////////////////////////////////////////////////
 
-#if SCW_UNIX
+#if SW_UNIX
 
 #  include <uuid/uuid.h>
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 template <>
@@ -117,8 +117,8 @@ Uuid Uuid::create() noexcept {
   return Uuid(id);
 }
 
-#elif SCW_WINDOWS
+#elif SW_WINDOWS
 #  error Implement Uuid::create for windows
 #endif
 
-}  // namespace scw
+}  // namespace sw

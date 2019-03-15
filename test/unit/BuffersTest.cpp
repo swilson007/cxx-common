@@ -17,11 +17,11 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <scw/Buffers.h>
+#include <sw/Buffers.h>
 
 #include <array>
 
-namespace scw {
+namespace sw {
 
 TEST(BuffersTest, testUniqueBufferBasics) {
   // Basic creation. Set values to induce memory problems if they exist
@@ -62,4 +62,4 @@ TEST(BuffersTest, testBufferWrapperBasics) {
   }
 }
 
-}  // namespace scw
+}  // namespace sw

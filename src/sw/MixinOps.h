@@ -18,7 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Type defines 'bool equals(const T& that) const'
@@ -50,4 +50,4 @@ struct CompareMixin {
   friend bool operator>=(const T& lhs, const T& rhs) { return !(lhs.lessThan(rhs)); }
 };
 
-}  // namespace scw
+}  // namespace sw

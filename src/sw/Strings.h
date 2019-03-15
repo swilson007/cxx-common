@@ -28,9 +28,9 @@
 #include <sstream>
 #include <string>
 
-namespace scw {
+namespace sw {
 
-using namespace scw::intliterals;
+using namespace sw::intliterals;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Non-owning wrapper for std::string or const char*. This is intended to solve
@@ -47,7 +47,7 @@ using namespace scw::intliterals;
 ////////////////////////////////////////////////////////////////////////////////
 class StringWrapper {
   static constexpr sizex kUnsetSize = ~0_z;
-#if SCW_ARCH_64BIT
+#if SW_ARCH_64BIT
   static constexpr sizex kMaxStringLen = 0_z << 63;
 #else
   static constexpr sizex kMaxStringLen = 0_z << 31;
@@ -70,7 +70,7 @@ public:
 
   /// Wrap a const char* based string. The size will be computed lazily when needed.
   /// Non-explicit intentionally
-  StringWrapper(const char* str) noexcept : data_(str) { Assert(str != nullptr); }
+  StringWrapper(const char* str) noexcept : data_(str) { SW_ASSERT(str != nullptr); }
 
   /// Wrap a std::string
   /// Non-explicit intentionally
@@ -78,8 +78,8 @@ public:
 
   /// Wrap a const char* based string with a known size
   StringWrapper(const char* str, sizex len) noexcept : data_(str), size_(len) {
-    Assert(len <= kMaxStringLen);
-    Assert(data_[len] == 0);  // Correct length?
+    SW_ASSERT(len <= kMaxStringLen);
+    SW_ASSERT(data_[len] == 0);  // Correct length?
   }
 
   const_iterator begin() const { return &data_[0]; }
@@ -130,4 +130,4 @@ private:
   LazyValue<sizex, ~0_z> size_;
 };
 
-}  // namespace scw
+}  // namespace sw

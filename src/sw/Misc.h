@@ -36,7 +36,7 @@
 /// Contains useful miscellaneous functions
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Convert a thread id to an integer
@@ -60,7 +60,7 @@ class NoRenentryGuard {
 public:
   NoRenentryGuard(EntryCounter& counter) : counter_(counter) {
     if (counter_.inc() > 1) {
-      Assert(false);  // We've recursed!
+      SW_ASSERT(false);  // We've recursed!
     }
   }
   ~NoRenentryGuard() { counter_.dec(); }
@@ -141,7 +141,7 @@ private:
   inline T& doGet(const InitFunc& initFunc) const {
     if (mValue == kInvalidValue) {
       mValue = initFunc();
-      Assert(mValue != kInvalidValue);  // Don't set the value to the invalid value ever (I hope)
+      SW_ASSERT(mValue != kInvalidValue);  // Don't set the value to the invalid value ever (I hope)
     }
     return mValue;
   }
@@ -225,7 +225,7 @@ constexpr T PodWrapper<T, kInvalidValue>::kInvalid;
 ///
 /// The asPod() function is just less typing than the static_cast approach to get
 /// the enum out as the underlying integral (POD) type
-#define SCW_DEFINE_ENUM_BITFIELD_OPERATORS(T)                                     \
+#define SW_DEFINE_ENUM_BITFIELD_OPERATORS(T)                                     \
   static_assert(std::is_unsigned<std::underlying_type<T>::type>::value,           \
                 "Bitmask enums must use unsigned types");                         \
   constexpr std::underlying_type<T>::type asPod(T enumValue) {                    \
@@ -254,4 +254,4 @@ constexpr T PodWrapper<T, kInvalidValue>::kInvalid;
   }                                                                               \
   static_assert(true, "Put a semicolon after the macro definition!")
 
-};  // namespace scw
+};  // namespace sw

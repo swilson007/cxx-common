@@ -27,9 +27,9 @@
 #include <new>
 #include <type_traits>
 
-namespace scw {
+namespace sw {
 
-using namespace ::scw::intliterals;
+using namespace ::sw::intliterals;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Reallocator classes will use malloc/free to avoid unneeded object ctor calls
@@ -140,4 +140,4 @@ public:
   }
 };
 
-}  // namespace scw
+}  // namespace sw

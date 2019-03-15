@@ -32,7 +32,7 @@
 /// Examples
 /// --------
 ///  #include "FixedWidthIntLiterals.h"
-///  using namespace scw::intliterals;
+///  using namespace sw::intliterals;
 ///  auto ux = 100_u32; // ux will be uint32_t
 ///  auto uy = 100_u64; // uy will be uint64_t
 ///  auto uz = 0xFF_u8; // uz will be uint8_t value of 255
@@ -55,7 +55,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace scw {
+namespace sw {
 namespace intliterals {
 namespace detail {
 
@@ -134,7 +134,7 @@ constexpr u64 createValue() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Sigh the macro... Can't get a string into a static_assert with a template param,
 /// it must be literal, and I don't want to copy/paste the function.
-#define SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(typename_, errorMessage_)           \
+#define SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(typename_, errorMessage_)           \
   template <u64 kValue>                                                            \
   constexpr typename_ checkValid_##typename_() {                                   \
     static_assert(kValue <= std::numeric_limits<typename_>::max(), errorMessage_); \
@@ -142,42 +142,42 @@ constexpr u64 createValue() {
   }
 
 // clang-format off
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint8_t, "uint8 literal out of range.");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint16_t, "uint16 literal out of range.");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint32_t, "uint32 literal out of range.");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint64_t, "uint64 literal can't be out of range!");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int8_t, "int8 literal out of range. Note that the value of numeric_limits<int8>::min() is not supported");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int16_t, "int16 literal out of range. Note that the value of numeric_limits<int16>::min() is not supported");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int32_t, "int8 literal out of range. Note that the value of numeric_limits<int32>::min() is not supported");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int64_t, "int64 literal out of range. Note that the value of numeric_limits<int64>::min() is not supported");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(size_t, "size_t literal out of range.");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uintx, "uintx literal out of range.");
-SCW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(intx, "intx literal out of range.");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint8_t, "uint8 literal out of range.");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint16_t, "uint16 literal out of range.");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint32_t, "uint32 literal out of range.");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uint64_t, "uint64 literal can't be out of range!");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int8_t, "int8 literal out of range. Note that the value of numeric_limits<int8>::min() is not supported");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int16_t, "int16 literal out of range. Note that the value of numeric_limits<int16>::min() is not supported");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int32_t, "int8 literal out of range. Note that the value of numeric_limits<int32>::min() is not supported");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(int64_t, "int64 literal out of range. Note that the value of numeric_limits<int64>::min() is not supported");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(size_t, "size_t literal out of range.");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(uintx, "uintx literal out of range.");
+SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(intx, "intx literal out of range.");
 // clang-format on
 
 }  // namespace detail
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Finally the user-defined literal operators. Again with the macros?
-#define SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(typesuffix_, typename_)         \
+#define SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(typesuffix_, typename_)         \
   template <char... digits>                                                    \
   constexpr typename_ operator"" typesuffix_() {                               \
     return detail::checkValid_##typename_<detail::createValue<digits...>()>(); \
   }
 
 // clang-format off
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u8, uint8_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u16, uint16_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u32, uint32_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u64, uint64_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_ux, uintx);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i8, int8_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i16, int16_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i32, int32_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i64, int64_t);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_ix, intx);
-SCW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_z, size_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u8, uint8_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u16, uint16_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u32, uint32_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_u64, uint64_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_ux, uintx);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i8, int8_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i16, int16_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i32, int32_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_i64, int64_t);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_ix, intx);
+SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_z, size_t);
 // clang-format on
 
 }  // namespace intliterals
-}  // namespace scw
+}  // namespace sw

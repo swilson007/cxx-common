@@ -17,14 +17,14 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <scw/FixedWidthIntLiterals.h>
+#include <sw/FixedWidthIntLiterals.h>
 
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 
-namespace scw {
-using namespace scw::intliterals;
+namespace sw {
+using namespace sw::intliterals;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Note that for the literal test, it's all done via static_assert
@@ -132,4 +132,4 @@ TEST(LiteralsTest, basicTest) {
   }
 }
 
-}  // namespace scw
+}  // namespace sw

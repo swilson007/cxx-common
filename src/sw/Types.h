@@ -27,14 +27,14 @@
 #include <mutex>
 #include <type_traits>
 
-namespace scw {
+namespace sw {
 
 // Arch sized types. No more int/uint. The 'x' suffix indicates "architecture"
 // and is inspired by "x86" and "x64".
-#if SCW_ARCH_64BIT
+#if SW_ARCH_64BIT
 using uintx = uint64_t;  // Arch sized unsigned int
 using intx = int64_t;    // Arch sized int
-#elif #if SCW_ARCH_32BIT
+#elif #if SW_ARCH_32BIT
 using uintx = uint32_t;  // Arch sized unsigned int
 using intx = int32_t;    // Arch sized int
 #else
@@ -48,7 +48,7 @@ using uptrx = uintptr_t;                        // Consistent name for uintptr_t
 using ptrx = intptr_t;                          // Consistent name
 using ptrdiffx = ptrdiff_t;                     // Consistent name
 
-static_assert(sizeof(uintx) == SCW_SIZEOF_POINTER, "Incorrect size");
+static_assert(sizeof(uintx) == SW_SIZEOF_POINTER, "Incorrect size");
 static_assert(sizeof(intx) == sizeof(uintx), "Incorrect size");
 
 // Tighter type names
@@ -80,4 +80,4 @@ using HiResTimepointNs = std::chrono::time_point<HiResClock, std::chrono::nanose
 using HiResTimepointMs = std::chrono::time_point<HiResClock, std::chrono::milliseconds>;
 using SteadyTimepointMs = std::chrono::time_point<SteadyClock, std::chrono::milliseconds>;
 
-}  // namespace scw
+}  // namespace sw

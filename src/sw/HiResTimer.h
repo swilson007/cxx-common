@@ -20,7 +20,7 @@
 
 #include <chrono>
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Class for hi-resolution timing.
@@ -101,4 +101,4 @@ private:
   TimePoint start_;
 };
 
-}  // namespace scw
+}  // namespace sw

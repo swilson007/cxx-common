@@ -34,10 +34,10 @@ if (MSVC)
     # TODO: Try this. Test this. Fix this
 
     list(APPEND StandardCxxDefines
-            -DSCW_OS=WINDOWS -DSCW_WINDOWS=1 -DNOMINMAX)
+      -DSW_OS=WINDOWS -DSW_WINDOWS=1 -DNOMINMAX)
 
-    set(CMAKE_CXX_FLAGS_RELEASE "/MP /O2 /DSCW_RELEASE=1")
-    set(CMAKE_CXX_FLAGS_DEBUG "/MP /DSCW_DEBUG=1")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MP /O2 /DSW_RELEASE=1")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MP /DSW_DEBUG=1")
 
     # Force to always compile with W1
     if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
@@ -48,11 +48,11 @@ if (MSVC)
 
 elseif (MACOSX)
     list(APPEND StandardCxxDefines
-        -DSCW_OS=MACOS -DSCW_UNIX=1 -DSCW_MACOS=1)
+      -DSW_OS=MACOS -DSW_UNIX=1 -DSW_MACOS=1)
 
     # Not sure the "right" way to do this
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -DSCW_DEBUG=1")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DSCW_RELEASE=1")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -DSW_DEBUG=1")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DSW_RELEASE=1")
 
     # Clang/gcc flags
     list(APPEND StandardCxxWarnings
@@ -65,10 +65,10 @@ elseif (MACOSX)
 
 elseif (LINUX)
     list(APPEND StandardCxxDefines
-        -DSCW_OS=LINUX -DSCW_UNIX=1 -DSCW_LINUX=1)
+      -DSW_OS=LINUX -DSW_UNIX=1 -DSW_LINUX=1)
 
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -DSCW_DEBUG=1")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DSCW_RELEASE=1")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -DSW_DEBUG=1")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DSW_RELEASE=1")
 
     # Clang/gcc flags
     list(APPEND StandardCxxWarnings

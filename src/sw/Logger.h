@@ -20,25 +20,25 @@
 
 #include "HiResTimer.h"
 #include "Strings.h"
-#include "System.h"
+#include "SystemTraits.h"
 
 #include <iostream>
 #include <mutex>
 #include <sstream>
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// This code is quick and minimally featured. Once I need real logging, consider
 /// digging around for something already built and good.
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename System = system::ThisSystem>
+template <typename SystemTraits = system::ThisSystemTraits>
 class LoggerType;
 using Logger = LoggerType<>;
 
 ////////////////////////////////////////////////////////////////////////////////
-template <typename System>
+template <typename SystemTraits>
 class LoggerType {
 public:
   static constexpr sizex kMaxLogMessageLength = 2048u;
@@ -132,7 +132,7 @@ public:
   std::ostream& lout() { return lout_; }
 
 private:
-  /// SCW: Very simplistic support for stream based log. This should log whatever is written to
+  /// SW: Very simplistic support for stream based log. This should log whatever is written to
   /// lout whenever it is flushed. Use like:
   ///  logger().lout() << "foo" << std::flush;
   /// OR
@@ -198,8 +198,8 @@ private:
   friend LoggerType& logger();
 };
 
-template <typename System>
-std::unique_ptr<LoggerType<System>> LoggerType<System>::gLogger_;
+template <typename SystemTraits>
+std::unique_ptr<LoggerType<SystemTraits>> LoggerType<SystemTraits>::gLogger_;
 
 ////////////////////////////////////////////////////////////////////////////////
 inline void createLogger() {
@@ -220,4 +220,4 @@ public:
   ~CreateAndDestroyLogger() { destroyLogger(); }
 };
 
-}  // namespace scw
+}  // namespace sw

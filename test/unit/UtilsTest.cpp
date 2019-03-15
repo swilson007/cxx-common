@@ -17,11 +17,11 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <scw/Utils.h>
+#include <sw/Utils.h>
 
 #include <array>
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(UtilsTest, testFormatInto) {
@@ -39,4 +39,4 @@ TEST(UtilsTest, testFormatn) {
   ASSERT_STREQ("Hello: 1!=2", str.c_str());
 }
 
-}  // namespace scw
+}  // namespace sw

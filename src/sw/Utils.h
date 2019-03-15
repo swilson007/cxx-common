@@ -20,21 +20,21 @@
 
 #include "Assert.h"
 #include "Strings.h"
-#include "System.h"
+#include "SystemTraits.h"
 
 #include <algorithm>
 #include <array>
 #include <cstring>
 #include <string>
 
-namespace scw { namespace utils {
+namespace sw { namespace utils {
 
-template <typename System = ::scw::system::ThisSystem>
+template <typename SystemTraits = ::sw::system::ThisSystemTraits>
 struct UtilsStorageType;
 using UtilsStorage = UtilsStorageType<>;
 
 ////////////////////////////////////////////////////////////////////////////////
-template <typename System>
+template <typename SystemTraits>
 struct UtilsStorageType {
   // Maximum supported format string length
   static const std::string kErrorString;
@@ -62,11 +62,11 @@ struct UtilsStorageType {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-template <typename System>
-const std::string UtilsStorageType<System>::kErrorString = "<error>";
+template <typename SystemTraits>
+const std::string UtilsStorageType<SystemTraits>::kErrorString = "<error>";
 
-template <typename System>
-const std::array<const char*, 256> UtilsStorageType<System>::kHexLookup;
+template <typename SystemTraits>
+const std::array<const char*, 256> UtilsStorageType<SystemTraits>::kHexLookup;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Convert a byte to it's hex string. Quickly.
@@ -85,7 +85,7 @@ inline constexpr char const* toHexChar(byte b) {
 /// @return result of underlying call to snprintf
 template <typename... Ts>
 int formatInto(char* output, sizex outputSize, const StringWrapper& format, Ts... ts) {
-  Assert(outputSize > 0);
+  SW_ASSERT(outputSize > 0);
 
   // Special case of empty format string
   if (format.empty()) {
@@ -100,7 +100,7 @@ int formatInto(char* output, sizex outputSize, const StringWrapper& format, Ts..
   // maxLength bytes will have been written
   auto formatSize = std::snprintf(output, outputSize, format.c_str(), std::forward<Ts>(ts)...);
   if (formatSize < 0) {
-    Assert(true);
+    SW_ASSERT(true);
     output[0] = 0;
   }
 
@@ -164,4 +164,4 @@ inline void placeIntoBuffer(byte* destBuffer, Source value) {
   std::memcpy(destBuffer, &value, sizeof(Source));
 }
 
-}}  // namespace scw::utils
+}}  // namespace sw::utils

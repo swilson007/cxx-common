@@ -30,7 +30,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace scw {
+namespace sw {
 
 template <typename T, typename Reallocator>
 class VectorBase;
@@ -305,7 +305,7 @@ private:
   ////////////////////////////////////////////////////////////////////////////////
   /// Call when the size is shrinking. Will destruct items
   void shrinkTo(size_type newCount) {
-    Assert(newCount < size());
+    SW_ASSERT(newCount < size());
 
     auto destructCount = size() - newCount;
     auto firstIdx = size() - destructCount;
@@ -329,4 +329,4 @@ private:
   T* capacity_;
 };
 
-}  // namespace scw
+}  // namespace sw

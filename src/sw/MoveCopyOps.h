@@ -26,9 +26,9 @@
 #include <new>
 #include <type_traits>
 
-namespace scw {
+namespace sw {
 
-using namespace ::scw::intliterals;
+using namespace ::sw::intliterals;
 
 // clang-format off
 /// These structs are just to support enable_if constructs
@@ -53,7 +53,7 @@ struct IsMemCopyable :
 }
 // clang-format on
 
-using namespace ::scw::detail;
+using namespace ::sw::detail;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// This class contains move/copy/construct/destruction functions that are useful for
@@ -221,4 +221,4 @@ public:
   }
 };
 
-}  // namespace scw
+}  // namespace sw

@@ -17,9 +17,9 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <scw/Strings.h>
+#include <sw/Strings.h>
 
-namespace scw {
+namespace sw {
 
 /// Simple function to ensure our implicit convert to std::string
 std::string toStr(const std::string& s) {
@@ -37,4 +37,4 @@ TEST(StringsTest, testStringWrapperBasic) {
   ASSERT_TRUE(ss1 == s1.c_str());
 }
 
-}  // namespace scw
+}  // namespace sw

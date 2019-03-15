@@ -26,7 +26,7 @@
 /// Non-macro asserts.
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// General purpose NOP (do nothing) function. Can help with warnings, static analysis
@@ -35,35 +35,36 @@ inline void nop() noexcept {}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// AssertAlways will be enabled even in release mode.
-#ifdef SCW_MSVC_CXX
-inline void AssertAlways(bool _cond) noexcept {
-  if (!_cond)
+/// Using MACROs for the asserts so we can add __FILE__ and __LINE__ in when needed
+#ifdef SW_MSVC_CXX
+inline void AssertAlwaysImpl(bool cond) noexcept {
+  if (!cond)
     __debugbreak();
 }
 #else
-inline void AssertAlways(bool _cond) noexcept {
-  if (!_cond)
+inline void AssertAlwaysImpl(bool cond) noexcept {
+  if (!cond)
     std::abort();
 }
 #endif
+#define SW_ASSERT_ALWAYS(cond_) AssertAlwaysImpl(cond_)
 
-// Override assert setting with -DSCW_ENABLE_ASSERT=0|1
-#ifdef SCW_DEBUG
-#  ifndef SCW_ENABLE_ASSERTS
-#    define SCW_ENABLE_ASSERTS 1
+// Override assert setting with -DSW_ENABLE_ASSERT=0|1
+#ifdef SW_DEBUG
+#  ifndef SW_ENABLE_ASSERTS
+#    define SW_ENABLE_ASSERTS 1
 #  endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Regular Assert. Aborts when enabled, otherwise does nothing.
-#if SCW_ENABLE_ASSERTS
-inline void Assert(bool _cond) noexcept {
-  AssertAlways(_cond);
+#if SW_ENABLE_ASSERTS
+inline void AssertImpl(bool cond) noexcept {
+  AssertAlwaysImpl(cond);
 }
+#define SW_ASSERT(cond_) AssertImpl(cond_)
 #else
-inline void Assert(bool _cond) noexcept {
-  nop();
-}
+#define SW_ASSERT(cond_)
 #endif
 
-}  // namespace scw
+}  // namespace sw

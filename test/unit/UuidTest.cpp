@@ -17,13 +17,13 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <scw/Strings.h>
-#include <scw/Uuid.h>
+#include <sw/Strings.h>
+#include <sw/Uuid.h>
 
 #include <iostream>
 #include <sstream>
 
-namespace scw {
+namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(UuidTest, testToString) {
@@ -66,4 +66,4 @@ TEST(UuidTest, testCreate) {
   std::cout << "real uuid=" << u0 << std::endl;
 }
 
-}  // namespace scw
+}  // namespace sw

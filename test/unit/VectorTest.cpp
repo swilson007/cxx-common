@@ -17,15 +17,15 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <scw/HiResTimer.h>
-#include <scw/Vector.h>
+#include <sw/HiResTimer.h>
+#include <sw/Vector.h>
 
 #include <iostream>
 #include <random>
 #include <string>
 #include <vector>
 
-namespace scw {
+namespace sw {
 
 struct TrackedItem {
   ~TrackedItem() { --sItems; }
@@ -42,7 +42,7 @@ TEST(VectorTest, testCtor) {
   stdvec.resize(10);
   stdvec.reserve(10);
 
-  scw::Vector<int> ivec;
+  sw::Vector<int> ivec;
   ivec.reserve(1);
   ivec.push_back(1);
   ivec.push_back(2);
@@ -161,7 +161,7 @@ sizex doVectorPerf(sizex iterations) {
 #define TEST_PERFORMANCE 0
 #if TEST_PERFORMANCE
 TEST(VectorTest, vecPerf) {
-#  if SCW_DEBUG
+#  if SW_DEBUG
   const sizex kIterations = 1;
   const sizex kTestIterations = 1;
 #  else
@@ -169,7 +169,7 @@ TEST(VectorTest, vecPerf) {
   const sizex kTestIterations = 5;
 #  endif
   for (sizex test = 0; test < kTestIterations; ++test) {
-#  if SCW_RELEASE
+#  if SW_RELEASE
     {
       HiResTimer hrt;
       auto count = doVectorPerf<std::vector<u64>>(kIterations);
@@ -180,9 +180,9 @@ TEST(VectorTest, vecPerf) {
 
     {
       HiResTimer hrt;
-      auto count = doVectorPerf<scw::Vector<u64>>(kIterations);
+      auto count = doVectorPerf<sw::Vector<u64>>(kIterations);
       auto elapsed = hrt.elapsedMs();
-      std::cout << "scw::Vector=" << elapsed.count() << "ms count=" << count << std::endl;
+      std::cout << "sw::Vector=" << elapsed.count() << "ms count=" << count << std::endl;
     }
   }
 }
@@ -278,7 +278,7 @@ sizex doNonTrivialVectorPerf(sizex iterations) {
 
 #if TEST_PERFORMANCE
 TEST(VectorTest, nonTrivialVecPerf) {
-#  if SCW_DEBUG
+#  if SW_DEBUG
   const sizex kIterations = 1;
   const sizex kTestIterations = 1;
 #  else
@@ -304,9 +304,9 @@ TEST(VectorTest, nonTrivialVecPerf) {
 
     {
       HiResTimer hrt;
-      auto count = doNonTrivialVectorPerf<scw::Vector<NonTrivialFoo>>(kIterations);
+      auto count = doNonTrivialVectorPerf<sw::Vector<NonTrivialFoo>>(kIterations);
       auto elapsed = hrt.elapsedMs();
-      std::cout << "scw::Vector=" << elapsed.count() << "ms count=" << count << std::endl;
+      std::cout << "sw::Vector=" << elapsed.count() << "ms count=" << count << std::endl;
       std::cout << " ctors=" << NonTrivialFoo::sCtors << ", copies=" << NonTrivialFoo::sCopies
                 << ", moves=" << NonTrivialFoo::sMoves << ", dtors=" << NonTrivialFoo::sDtors
                 << std::endl;
@@ -321,4 +321,4 @@ TEST(VectorTest, nonTrivialVecPerf) {
 }
 #endif
 
-}  // namespace scw
+}  // namespace sw
