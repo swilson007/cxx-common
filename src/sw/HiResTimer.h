@@ -43,6 +43,12 @@ public:
   HiResTimer() : start_(Clock::now()) {}
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// @return Returns the duration since the timer was started as a floating point in ms
+  double elapsedMsd() const {
+    return elapsedDuration<std::chrono::duration<double>>().count() * 1000.0;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
   // @return Returns the duration since the timer was started
   std::chrono::microseconds elapsed() const { return elapsedDuration<std::chrono::microseconds>(); }
 

@@ -231,6 +231,9 @@ constexpr T PodWrapper<T, kInvalidValue>::kInvalid;
   constexpr std::underlying_type<T>::type asPod(T enumValue) {                    \
     return static_cast<std::underlying_type<T>::type>(enumValue);                 \
   }                                                                               \
+  constexpr T operator~(T v) {                                                    \
+    return static_cast<T>(~asPod(v));                                             \
+  }                                                                               \
   constexpr T operator|(T lhs, T rhs) {                                           \
     return static_cast<T>(asPod(lhs) | asPod(rhs));                               \
   }                                                                               \
