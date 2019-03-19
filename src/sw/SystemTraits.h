@@ -106,7 +106,8 @@ inline std::ostream& operator<<(std::ostream& outs, SystemPlatform v) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <SystemPosix Posix, SystemPlatform Platform, SystemArch Arch, sizex kArchPointerSize>
+template <SystemPosix Posix, SystemPlatform Platform, SystemArch Arch,
+  sizex kArchPointerSize>
 struct SystemTraits {
   static constexpr SystemPosix kPosix = Posix;
   static constexpr SystemPlatform kPlatform = Platform;
@@ -127,16 +128,6 @@ constexpr SystemPosix kThisPosix = SystemPosix::Enabled;
 constexpr SystemPosix kThisPosix = SystemPosix::Disabled;
 #endif
 
-#if SW_MACOS
-constexpr SystemPlatform kThisPlatform = SystemPlatform::MacOs;
-#elif SW_LINUX
-constexpr SystemPlatform kThisPlatform = SystemPlatform::Linux;
-#elif SW_WINDOWS
-constexpr SystemPlatform kThisPlatform = SystemPlatform::Windows;
-#else
-#  error TODO
-#endif
-
 /// Setup each current system value
 #if SW_ARCH_32BIT
 constexpr SystemArch kThisArch = SystemArch::Bits32;
@@ -144,7 +135,39 @@ constexpr SystemArch kThisArch = SystemArch::Bits32;
 constexpr SystemArch kThisArch = SystemArch::Bits64;
 #endif
 
-/// Define the global system
-using ThisSystemTraits = SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>;
+// Finall - define the per-OS system traits class
+#if SW_MACOS
+constexpr SystemPlatform kThisPlatform = SystemPlatform::MacOs;
+struct MacSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>
+{
+  static constexpr const char* kNewline = "\n";
+  static constexpr const char* newline() { return kNewline; }
+};
+
+using ThisSystemTraits = MacSystemTraits;
+
+#elif SW_LINUX
+constexpr SystemPlatform kThisPlatform = SystemPlatform::Linux;
+struct LinuxSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>
+{
+  static constexpr const char* kNewline = "\n";
+  static constexpr const char* newline() { return kNewline; }
+};
+
+using ThisSystemTraits = LinuxSystemTraits;
+
+#elif SW_WINDOWS
+constexpr SystemPlatform kThisPlatform = SystemPlatform::Windows;
+struct LinuxSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>
+{
+  static constexpr const char* kNewline = "\r\n";
+  static constexpr const char* newline() { return kNewline; }
+};
+
+using ThisSystemTraits = WindowsSystemTraits;
+
+#else
+#  error TODO
+#endif
 
 }}  // namespace sw::system

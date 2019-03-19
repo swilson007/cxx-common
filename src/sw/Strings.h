@@ -33,6 +33,17 @@ namespace sw {
 using namespace sw::intliterals;
 
 ////////////////////////////////////////////////////////////////////////////////
+/// If the final character of the given string matches the provided 'trimChar',
+/// that character will be removed and the string will be shorter by one character.
+/// Otherwise, the string will be the same.
+inline void trimEndingChar(std::string& str, char trimChar) {
+  auto const len = str.length();
+  if (len > 0 && str[len-1] == trimChar) {
+    str.resize(len - 1);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Non-owning wrapper for std::string or const char*. This is intended to solve
 /// the conundrum of needing a function that takes a const char* vs a const
 /// std::string&, and always avoiding a copy. Unlike std::string_view, StringWrapper

@@ -135,7 +135,7 @@ private:
 class BufferView {
 public:
   BufferView() = default;
-  BufferView(BufferView& that) = default;
+  BufferView(const BufferView& that) = default;
   BufferView& operator=(const BufferView& that) = default;
   BufferView(BufferView&& that) noexcept = default;
   BufferView& operator=(BufferView&& that) noexcept = default;
@@ -151,6 +151,9 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates a buffer-view of the given unique buffer
   explicit BufferView(UniqueBuffer& ub) noexcept : BufferView(ub.data(), ub.size()) {}
+
+  /// A valid buffer must be non-null and have >0 size
+  bool isValid() const noexcept { return data_ != nullptr && size_ > 0; }
 
   const byte* data() const noexcept { return data_; }
   byte* data() noexcept { return data_; }
@@ -222,7 +225,11 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates a buffer-view of the given unique buffer
-  explicit ConstBufferView(const UniqueBuffer& ub) noexcept : ConstBufferView(ub.data(), ub.size()) {}
+  explicit ConstBufferView(const UniqueBuffer& ub) noexcept :
+      ConstBufferView(ub.data(), ub.size()) {}
+
+  /// A valid buffer must be non-null and have >0 size
+  bool isValid() const noexcept { return data_ != nullptr && size_ > 0; }
 
   const byte* data() const noexcept { return data_; }
   sizex size() const noexcept { return size_; }
