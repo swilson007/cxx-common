@@ -140,4 +140,8 @@ public:
   }
 };
 
+/// Recallocator type that boils to just being using the standard allocator
+template <typename T>
+using StdReallocator = ReallocatorAdapter<T>;
+
 }  // namespace sw
