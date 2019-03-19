@@ -26,7 +26,7 @@ namespace sw {
 TEST(BuffersTest, testUniqueBufferBasics) {
   // Basic creation. Set values to induce memory problems if they exist
   const sizex kBufSize = 10000;
-  UniqueBuffer ub1 = UniqueBuffer::create(kBufSize);
+  UniqueBuffer ub1 = makeUniqueBuffer(kBufSize);
   for (sizex i = 0; i < kBufSize; ++i) {
     ub1[i] = static_cast<byte>(i);
   }
@@ -42,7 +42,7 @@ TEST(BuffersTest, testUniqueBufferBasics) {
 
   // Swap
   const sizex kBufSize2 = 10;
-  UniqueBuffer ub3 = UniqueBuffer::create(kBufSize2);
+  UniqueBuffer ub3 = makeUniqueBuffer(kBufSize2);
   swap(ub2, ub3);
   ASSERT_EQ(kBufSize, ub3.size());
   ASSERT_EQ(kBufSize2, ub2.size());
@@ -50,7 +50,7 @@ TEST(BuffersTest, testUniqueBufferBasics) {
 
 TEST(BuffersTest, testBufferWrapperBasics) {
   const sizex kBufSize = 10;
-  UniqueBuffer ub1 = UniqueBuffer::create(kBufSize);
+  UniqueBuffer ub1 = makeUniqueBuffer(kBufSize);
   for (sizex i = 0; i < kBufSize; ++i) {
     ub1[i] = static_cast<byte>(i);
   }

@@ -29,10 +29,16 @@ namespace sw {
 
 using namespace intliterals;
 
+/// This could be enable_if'd to pick the right allocator (see Reallocator.h)
 template <typename ReallocatorType = MallocReallocator<byte>>
 class UniqueBufferType;
-
 using UniqueBuffer = UniqueBufferType<>;
+
+////////////////////////////////////////////////////////////////////////////////
+template <typename ReallocatorType = MallocReallocator<byte>>
+UniqueBufferType<ReallocatorType> makeUniqueBuffer(sizex size) {
+  return UniqueBufferType<ReallocatorType>(ReallocatorType().allocate(size), size);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wraps a memory buffer and assumes memory ownership. For now, this just
@@ -44,10 +50,6 @@ using UniqueBuffer = UniqueBufferType<>;
 template <typename ReallocatorType>
 class UniqueBufferType {
 public:
-  static UniqueBufferType create(sizex size) {
-    return UniqueBufferType(static_cast<byte*>(std::malloc(size)), size);
-  }
-
   UniqueBufferType() noexcept {}
 
   /// The passed buffer must be from the same allocator or it's undefined.
@@ -150,7 +152,8 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates a buffer-view of the given unique buffer
-  explicit BufferView(UniqueBuffer& ub) noexcept : BufferView(ub.data(), ub.size()) {}
+  template <typename ReallocatorType = MallocReallocator<byte>>
+  explicit BufferView(UniqueBufferType<ReallocatorType>& ub) noexcept : BufferView(ub.data(), ub.size()) {}
 
   /// A valid buffer must be non-null and have >0 size
   bool isValid() const noexcept { return data_ != nullptr && size_ > 0; }
