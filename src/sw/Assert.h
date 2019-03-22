@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// Copyright 2018 Steven C. Wilson
+/// Copyright 2019 Steven C. Wilson
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 /// and associated documentation files (the "Software"), to deal in the Software without
@@ -22,10 +22,6 @@
 
 #include <cstdlib>
 
-////////////////////////////////////////////////////////////////////////////////
-/// Non-macro asserts.
-////////////////////////////////////////////////////////////////////////////////
-
 namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -34,37 +30,30 @@ namespace sw {
 inline void nop() noexcept {}
 
 ////////////////////////////////////////////////////////////////////////////////
-/// AssertAlways will be enabled even in release mode.
-/// Using MACROs for the asserts so we can add __FILE__ and __LINE__ in when needed
-#ifdef SW_MSVC_CXX
-inline void AssertAlwaysImpl(bool cond) noexcept {
-  if (!cond)
-    __debugbreak();
-}
+/// SW_ASSERT_ALWAYS will be enabled even in release mode.
+/// TODO: add __FILE__ and __LINE__ in once it's useful
+#if SW_MSVC_CXX
+#  define SW_ASSERT_ALWAYS(cond_) do {if (!(cond_)) __debugbreak();} while(0)
+#elif defined(__has_builtin)
+#  define SW_ASSERT_ALWAYS(cond_) do {if (!(cond_)) __builtin_trap();} while(0)
 #else
-inline void AssertAlwaysImpl(bool cond) noexcept {
-  if (!cond)
-    std::abort();
-}
+#  define SW_ASSERT_ALWAYS(cond_) do {if (!(cond_)) std::abort();} while(0)
 #endif
-#define SW_ASSERT_ALWAYS(cond_) AssertAlwaysImpl(cond_)
 
 // Override assert setting with -DSW_ENABLE_ASSERT=0|1
-#ifdef SW_DEBUG
-#  ifndef SW_ENABLE_ASSERTS
+#if defined(SW_DEBUG)
+#  if !defined(SW_ENABLE_ASSERTS)
 #    define SW_ENABLE_ASSERTS 1
 #  endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Regular Assert. Aborts when enabled, otherwise does nothing.
+/// SW_ASSERT is auto-enabled for debug builds while disabled for other builds.
+/// Override it by setting SW_ENABLE_ASSERTS as a compile def.
 #if SW_ENABLE_ASSERTS
-inline void AssertImpl(bool cond) noexcept {
-  AssertAlwaysImpl(cond);
-}
-#define SW_ASSERT(cond_) AssertImpl(cond_)
+#  define SW_ASSERT(cond_) SW_ASSERT_ALWAYS(cond_)
 #else
-#define SW_ASSERT(cond_)
+#  define SW_ASSERT(cond_) (::sw::nop())
 #endif
 
 }  // namespace sw

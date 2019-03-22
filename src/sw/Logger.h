@@ -18,6 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+#include "Assert.h"
 #include "HiResTimer.h"
 #include "Strings.h"
 #include "SystemTraits.h"
@@ -183,7 +184,7 @@ private:
 
   ////////////////////////////////////////////////////////////////////////////////
   static LoggerType& logger() {
-    Assert(gLogger_ != nullptr);
+    SW_ASSERT(gLogger_ != nullptr);
     return *gLogger_;
   }
 

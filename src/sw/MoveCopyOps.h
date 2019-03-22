@@ -18,7 +18,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
 #include "FixedWidthIntLiterals.h"
 #include "Misc.h"
 #include "Types.h"
