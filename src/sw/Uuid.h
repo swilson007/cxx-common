@@ -75,7 +75,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Determine if the UUID is valid or not. An invalid UUID has all bytes as 0
-  inline bool isValid() const {
+  bool isValid() const {
     auto invalid = Uuid();
     return *this != invalid;
   }
@@ -110,7 +110,7 @@ namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 template <>
-Uuid Uuid::create() noexcept {
+inline Uuid Uuid::create() noexcept {
   // NOTE: uuid_t is a uint8[16], so we can pass it directly to our constructor
   uuid_t id;
   ::uuid_generate(id);
