@@ -158,9 +158,7 @@ private:
 ///   class MyUint32 : public PodWrapper<u32> { using PodWrapper::PodWrapper; };
 ///
 template <typename T, T kInvalidValue = 0>
-class PodWrapper :
-    public EqualityMixin<PodWrapper<T, kInvalidValue>>,
-    public CompareMixin<PodWrapper<T, kInvalidValue>> {
+class PodWrapper {
 public:
   using ValueType = T;
   static constexpr T kInvalid = kInvalidValue;
@@ -170,9 +168,11 @@ public:
   // Explicit conversion intentional
   PodWrapper(const T& v) : value(v) {}
 
-  // Non-Explicit intentionally
-  operator T&() { return value; }
-  operator const T&() const { return value; }
+  // Prevent pain and suffering
+  operator bool() const = delete;
+
+  explicit operator T&() { return value; }
+  explicit operator const T&() const { return value; }
 
   void set(const T& v) { value = v; }
   T& get() { return value; }

@@ -26,6 +26,7 @@
 #include <array>
 #include <cstring>
 #include <string>
+#include <type_traits>
 
 namespace sw { namespace utils {
 
@@ -139,9 +140,38 @@ std::string formatn(const StringWrapper& formatStr, Ts... ts) {
 /// Note that compilers are trained to see through this and produce the same code as
 /// a reinterpret_cast expression.
 template <typename Dest, typename Source>
-inline void saferAlias(Dest& dest, Source&& source) {
+inline void saferAlias(Dest& dest, Source source) {
   static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same.");
+  static_assert(std::is_pointer<Source>::value, "Source type must be a pointer");
+  static_assert(std::is_pointer<Dest>::value, "Source type must be a pointer");
+  static_assert(std::is_const<std::remove_pointer_t<Source>>::value ?
+                std::is_const<std::remove_pointer_t<Dest>>::value :
+                true,
+                "Can't cast away const with saferAlias");
+  static_assert(std::is_volatile<std::remove_pointer_t<Source>>::value ?
+                std::is_volatile<std::remove_pointer_t<Dest>>::value :
+                true,
+                "Can't cast away volatile with saferAlias");
   std::memcpy(&dest, &source, sizeof(Dest));
+}
+
+/// Cast-style version
+template <typename Dest, typename Source>
+inline Dest saferAlias(Source source) {
+  static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same");
+  static_assert(std::is_pointer<Source>::value, "Source type must be a pointer");
+  static_assert(std::is_pointer<Dest>::value, "Destination type must be a pointer");
+  static_assert(std::is_const<std::remove_pointer_t<Source>>::value ?
+                    std::is_const<std::remove_pointer_t<Dest>>::value :
+                    true,
+                "Can't cast away const with saferAlias");
+  static_assert(std::is_volatile<std::remove_pointer_t<Source>>::value ?
+                    std::is_volatile<std::remove_pointer_t<Dest>>::value :
+                    true,
+                "Can't cast away volatile with saferAlias");
+  Dest dest;
+  std::memcpy(&dest, &source, sizeof(Dest));
+  return dest;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

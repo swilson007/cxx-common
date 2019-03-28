@@ -207,13 +207,13 @@ public:
   const T* data() const noexcept { return begin_; }
 
   ////////////////////////////////////////////////////////////////////////////////
-  inline size_type size() const noexcept {
+  size_type size() const noexcept {
     auto result = static_cast<size_type>(end_ - begin_);
     return result;
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  inline bool empty() const { return begin_ == end_; }
+  bool empty() const { return begin_ == end_; }
 
   ////////////////////////////////////////////////////////////////////////////////
   void reserve(size_type newCapacity) {
@@ -229,7 +229,7 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  inline size_type capacity() const {
+  size_type capacity() const {
     auto result = static_cast<size_type>(bufferEnd() - begin_);
     return result;
   }
@@ -313,11 +313,11 @@ private:
     end_ = begin_ + newCount;
   }
 
-  inline T*& bufferEnd() { return capacity_; }
-  inline T* const& bufferEnd() const { return capacity_; }
+  T*& bufferEnd() { return capacity_; }
+  T* const& bufferEnd() const { return capacity_; }
 
   /// For now, to grow we'll just double our size. TODO: Think about this
-  inline void autoGrow() {
+  void autoGrow() {
     if (end_ == bufferEnd()) {
       reserve(capacity() * 2);
     }
