@@ -152,7 +152,7 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Wrapper template to make POD types into distinct types.
-/// Includes invalid support, but you can just ingore if you don't need invalid.
+/// Includes invalid support, but you can just ignore if you don't need invalid.
 ///
 /// Example: Declare as follows:
 ///   class MyUint32 : public PodWrapper<u32> { using PodWrapper::PodWrapper; };
@@ -178,27 +178,6 @@ public:
   T& get() { return value; }
   const T& get() const { return value; }
   bool isInvalid() const { return value == kInvalidValue; }
-
-  // TODO Test these
-  PodWrapper& operator++() {
-    ++value;
-    return *this;
-  }
-  PodWrapper operator++(int) {
-    auto tmp = *this;
-    ++value;
-    return tmp;
-  }
-
-  PodWrapper& operator--() {
-    --value;
-    return *this;
-  }
-  PodWrapper operator--(int) {
-    auto tmp = *this;
-    --value;
-    return tmp;
-  }
 
   bool equals(const PodWrapper& that) const { return value == that.value; }
   bool lessThan(const PodWrapper& that) const { return value < that.value; }
