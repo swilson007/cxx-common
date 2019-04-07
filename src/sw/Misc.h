@@ -168,8 +168,7 @@ public:
   // Explicit conversion intentional
   PodWrapper(const T& v) : value(v) {}
 
-  // Prevent pain and suffering
-  operator bool() const = delete;
+  explicit operator bool() const = delete; // Prevent pain and suffering
 
   explicit operator T&() { return value; }
   explicit operator const T&() const { return value; }
