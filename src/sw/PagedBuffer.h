@@ -81,7 +81,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Copies 'count' bytes from the source buffer into this buffer starting
-  /// 'position'.  This buffer will expand if needed.
+  /// 'position'. This buffer will expand if needed.
   void copyInto(sizex position, const byte* source, sizex count) {
     ensureCapacity(position + count);
     const byte* end = source + count;

@@ -30,6 +30,11 @@ namespace sw {
 inline void nop() noexcept {}
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Tag a variable as unused
+template <typename T>
+inline void unused(const T&) noexcept {}
+
+////////////////////////////////////////////////////////////////////////////////
 /// SW_ASSERT_ALWAYS will be enabled even in release mode.
 /// TODO: add __FILE__ and __LINE__ in once it's useful
 #if SW_MSVC_CXX

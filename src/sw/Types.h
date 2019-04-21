@@ -69,6 +69,8 @@ using int32 = std::int32_t;
 using uint32 = std::uint32_t;
 using int64 = std::int64_t;
 using uint64 = std::uint64_t;
+using uintmax = std::uintmax_t;
+using intmax = std::intmax_t;
 
 // convenience std:: typedefs
 using MutexLock = std::lock_guard<std::mutex>;

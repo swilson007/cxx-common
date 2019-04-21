@@ -76,10 +76,41 @@ inline constexpr char const* toHexChar(byte b) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Iterate over all substrings in the given string separated by the given 'splitter'
+/// char. For each substring, the passed function will be called with it as an
+/// rvalue std::string.
+///
+/// Note that empty substrings can occur when 1) the splitter is the first char of
+/// the source string, 2) the splitter is the last char of the source string, and
+/// 3) two splitters are adjacent
+///
+/// Ex: split ":foo::bar:" by ':'. Results -> "", "foo", "", "bar", ""
+///
+/// @param Func function that receives an rvalue substring: void func(std::string&&)
+/// @return number of strings processed
+template <typename Func>
+inline void splitString(const std::string& source, char splitter, const Func& func) {
+  if (source.empty()) {
+    return;
+  }
+
+  auto pos = source.data();
+  do {
+    const auto startPos = pos;
+    while (*pos != splitter && *pos != 0) {
+      ++pos;
+    }
+
+    func(std::string{startPos, pos});
+
+  } while (*pos++ != 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// TODO: Probably just get rid of this now that I'm using lib {fmt}
+///
 /// sprintf style string formatter that places results into the provided buffer. sprintf
 /// will be called at most once.
-///
-/// TODO: Reevaluate this and move to {fmt}
 ///
 /// @param output Buffer to output to
 /// @param output Length in bytes of the buffer
@@ -109,10 +140,9 @@ int formatInto(char* output, sizex outputSize, const StringWrapper& format, Ts..
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// TODO: Probably just get rid of this now that I'm using lib {fmt}
+///
 /// sprintf style string formatter capped at maxLength.  This will call std::snprintf once.
-///
-/// TODO: Reevaluate this and move to {fmt}
-///
 ///
 /// @param maxLength Maximum length of the resultant string, NOT including the null terminator
 ///                Thus the resultant string will be "result.length() <= maxSize"
@@ -137,30 +167,31 @@ std::string formatn(const StringWrapper& formatStr, Ts... ts) {
 /// approach is supposed to be an acceptable technique to inform the compiler
 /// of what we're doing vs using reinterpret_cast.
 ///
-/// Note that compilers are trained to see through this and produce the same code as
-/// a reinterpret_cast expression.
+/// Also note that compilers are trained to see through this and produce the same
+/// code as a reinterpret_cast expression.
 template <typename Dest, typename Source>
 inline void saferAlias(Dest& dest, Source source) {
   static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same.");
   static_assert(std::is_pointer<Source>::value, "Source type must be a pointer");
-  static_assert(std::is_pointer<Dest>::value, "Source type must be a pointer");
+  static_assert(std::is_pointer<Dest>::value, "Dest type must be a pointer");
   static_assert(std::is_const<std::remove_pointer_t<Source>>::value ?
-                std::is_const<std::remove_pointer_t<Dest>>::value :
-                true,
+                    std::is_const<std::remove_pointer_t<Dest>>::value :
+                    true,
                 "Can't cast away const with saferAlias");
   static_assert(std::is_volatile<std::remove_pointer_t<Source>>::value ?
-                std::is_volatile<std::remove_pointer_t<Dest>>::value :
-                true,
+                    std::is_volatile<std::remove_pointer_t<Dest>>::value :
+                    true,
                 "Can't cast away volatile with saferAlias");
   std::memcpy(&dest, &source, sizeof(Dest));
 }
 
+////////////////////////////////////////////////////////////////////////////////
 /// Cast-style version
 template <typename Dest, typename Source>
 inline Dest saferAlias(Source source) {
   static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same");
   static_assert(std::is_pointer<Source>::value, "Source type must be a pointer");
-  static_assert(std::is_pointer<Dest>::value, "Destination type must be a pointer");
+  static_assert(std::is_pointer<Dest>::value, "Dest type must be a pointer");
   static_assert(std::is_const<std::remove_pointer_t<Source>>::value ?
                     std::is_const<std::remove_pointer_t<Dest>>::value :
                     true,
@@ -192,6 +223,52 @@ inline Dest extractFromBuffer(const byte* sourceBuffer) {
 template <typename Source>
 inline void placeIntoBuffer(byte* destBuffer, Source value) {
   std::memcpy(destBuffer, &value, sizeof(Source));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Removes the specified element from the given vector by moving the last
+/// vector item into it's position, and then removing the empty last item.
+/// The vector will shrink by one element, and the value that was at
+/// vec[vec.back()] will now be at vec[index]. Must be called on a vector
+/// with at least one element.
+/// Time complexity: O(1)
+///
+/// @param vec Vector to remove items from
+template <typename T>
+inline void fastVectorRemoveAt(std::vector<T>& vec, const sizex indexToRemove) {
+  SW_ASSERT(!vec.empty());
+  SW_ASSERT(indexToRemove < vec.size());
+
+  // Note that self-move isn't really a settled issue in the C++ world as
+  // to if it should be handled or not. So really we must just assume it won't work
+  // consistently, and thus we must check for it. (And isn't this a piece
+  // of evidence that it *should* work!)
+  if (indexToRemove != (vec.size() - 1)) {
+    vec[indexToRemove] = std::move(vec.back());
+  }
+  vec.pop_back();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Removes the specified element from the given vector by moving the last
+/// vector item into it's position, and then removing the empty last item.
+/// The vector will shrink by one element, and the value that was at
+/// vec[vec.back()] will now be at vec[index]. Must be called on a vector
+/// with at least one element.
+/// Time complexity: O(1)
+///
+/// Iterator version
+///
+/// @param end The end() iterator of the vector. Can't == begin()
+template <typename Vec, typename VecIter>
+inline void fastVectorRemove(Vec& vec, VecIter removeMe) {
+  SW_ASSERT(!vec.empty());
+  VecIter back = std::end(vec) - 1;
+  // Same issue with self-move as index implementation - assume self-move doesn't work
+  if (removeMe != back) {
+    *removeMe = std::move(*back);
+  }
+  vec.pop_back();
 }
 
 }}  // namespace sw::utils
