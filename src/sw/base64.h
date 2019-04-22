@@ -127,7 +127,7 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
 
   // Groups of 3 complete. We're left with 0, 1, or 2 more bytes to encode.
   constexpr char kPad = '=';
-  if ((pos + 2) == end) {
+  if ((pos + 2) == end) {  // 2 bytes left
     const auto& b0 = *pos++;
     const auto& b1 = *pos++;
     result[resultPos++] = encode(byte(b0 >> 2u));
@@ -136,7 +136,7 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
     if (pad) {
       result[resultPos++] = kPad;
     }
-  } else if ((pos + 1) == end) {
+  } else if ((pos + 1) == end) { // 1 byte left
     const auto& b0 = *pos++;
     result[resultPos++] = encode(byte(b0 >> 2u));
     result[resultPos++] = encode(byte(byte(b0 << 4u) & 0b110000_u8));
