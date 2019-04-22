@@ -234,8 +234,8 @@ inline void placeIntoBuffer(byte* destBuffer, Source value) {
 /// Time complexity: O(1)
 ///
 /// @param vec Vector to remove items from
-template <typename T>
-inline void fastVectorRemoveAt(std::vector<T>& vec, const sizex indexToRemove) {
+template <typename Vec>
+inline void fastVectorRemoveAt(Vec& vec, const sizex indexToRemove) {
   SW_ASSERT(!vec.empty());
   SW_ASSERT(indexToRemove < vec.size());
 
