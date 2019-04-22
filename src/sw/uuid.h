@@ -20,6 +20,7 @@
 
 #include "system_traits.h"
 #include "utils.h"
+#include "base64.h"
 
 #include <array>
 #include <iostream>
@@ -55,6 +56,9 @@ public:
   UuidType& operator=(UuidType&& other) noexcept = default;
 
   // TODO Uuid(const StringWrapper& string);
+  ////////////////////////////////////////////////////////////////////////////////
+  const byte* bytes() const { return bytes_.data(); }
+  constexpr sizex size() const { return 16; }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Convert the UUID into a string
@@ -71,6 +75,18 @@ public:
 
     std::string result(buffer.data(), 36);
     return result;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Convert the UUID into a base64 string
+  std::string toBase64() const {
+    return base64Encode(bytes_.data(), 16);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Convert the UUID into a filename-safe base64 string
+  std::string toBase64Filename() const {
+    return base64FilenameEncode(bytes_.data(), 16);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
