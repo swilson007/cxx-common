@@ -26,6 +26,7 @@
 namespace sw {
 
 TEST(Base64Test, basic) {
+#if 0
   std::cout << "b64('Mang')='" << base64Encode("Mang") << "'" << std::endl;
   std::cout << "b64('Man')='" << base64Encode("Man") << "'" << std::endl;
   std::cout << "b64('Ma')='" << base64Encode(std::string("Ma")) << "'" << std::endl;
@@ -35,6 +36,7 @@ TEST(Base64Test, basic) {
   std::cout << "b64('Man')='" << base64FilenameEncode("Man") << "'" << std::endl;
   std::cout << "b64('Ma')='" << base64FilenameEncode(std::string("Ma")) << "'" << std::endl;
   std::cout << "b64('M')='" << base64FilenameEncode(std::string("M")) << "'" << std::endl;
+#endif
 
   ASSERT_EQ(base64Encode("Encode to Base64 format"), "RW5jb2RlIHRvIEJhc2U2NCBmb3JtYXQ=");
   ASSERT_EQ(base64Encode("Easy to"), "RWFzeSB0bw==");
@@ -44,11 +46,14 @@ TEST(Base64Test, basic) {
 }
 
 TEST(Base64Test, uuid) {
+#if 0
   for (sizex i = 0; i < 10; ++i) {
     Uuid u1 = Uuid::create();
     std::cout << "u1=" << u1.toString() << ", b64=" << u1.toBase64()
               << ", b64f=" << u1.toBase64Filename() << std::endl;
   }
+#endif
+  // TODO
 }
 
 }  // namespace sw

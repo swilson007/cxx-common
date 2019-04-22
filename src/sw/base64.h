@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-/// Copyright 2018 Steven C. Wilson
+/// Copyright 2019 Steven C. Wilson
 ///
 /// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 /// and associated documentation files (the "Software"), to deal in the Software without
@@ -26,10 +26,13 @@
 
 namespace sw {
 
-/// Base64 encoder that is URL/Filename safe per
-/// https://en.wikipedia.org/wiki/Base64#Variants_summary_table
+/// Base64 encoder that supports:
+///  * Standard encoding
+///  * URL/Filename safe perhttps://en.wikipedia.org/wiki/Base64#Variants_summary_table
+///  * Optional padding. Filename version defaults to no padding
 
 namespace detail {
+
 struct Base64Traits {
   static constexpr const char* kEncode =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -92,7 +95,6 @@ template <typename Base64Traits>
 inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad) {
   SW_ASSERT(((sourceLen << 2u) >> 2u) ==
             sourceLen);  // Ensure 2-MSbits are zero so we don't overflow
-  constexpr char kPad = '=';
 
   // Figure out resultant string size. It will be much more efficient to pre-size the
   // string and use [] ops than to append to it, as the append func has to do various checks
@@ -124,6 +126,7 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
   }
 
   // Groups of 3 complete. We're left with 0, 1, or 2 more bytes to encode.
+  constexpr char kPad = '=';
   if ((pos + 2) == end) {
     const auto& b0 = *pos++;
     const auto& b1 = *pos++;
@@ -145,7 +148,6 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
 
   return result;
 }
-
 
 /// TODO: write a decoder
 
