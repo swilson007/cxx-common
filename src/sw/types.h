@@ -18,7 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Defines.h"
+#include "defines.h"
 
 #include <chrono>
 #include <cstdint>

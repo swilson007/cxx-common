@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "FixedWidthIntLiterals.h"
-#include "Misc.h"
-#include "MoveCopyOps.h"
-#include "Types.h"
+#include "fixed_width_int_literals.h"
+#include "misc.h"
+#include "move_copy_ops.h"
+#include "types.h"
 
 #include <new>
 #include <type_traits>

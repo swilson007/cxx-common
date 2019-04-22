@@ -17,7 +17,7 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <sw/Buffers.h>
+#include <sw/buffers.h>
 
 #include <array>
 

@@ -17,8 +17,8 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <sw/Strings.h>
-#include <sw/Uuid.h>
+#include <sw/strings.h>
+#include <sw/uuid.h>
 
 #include <iostream>
 #include <sstream>

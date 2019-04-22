@@ -18,9 +18,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "FixedWidthIntLiterals.h"
-#include "Misc.h"
-#include "Types.h"
+#include "fixed_width_int_literals.h"
+#include "misc.h"
+#include "types.h"
 
 #include <new>
 #include <type_traits>

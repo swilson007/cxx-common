@@ -31,7 +31,7 @@
 ///
 /// Examples
 /// --------
-///  #include "FixedWidthIntLiterals.h"
+///  #include "fixed_width_int_literals.h"
 ///  using namespace sw::intliterals;
 ///  auto ux = 100_u32; // ux will be uint32_t
 ///  auto uy = 100_u64; // uy will be uint64_t
@@ -49,7 +49,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Types.h"
+#include "types.h"
 
 #include <cstddef>
 #include <cstdint>

@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "Misc.h"
-#include "Reallocator.h"
-#include "Types.h"
+#include "assert.h"
+#include "misc.h"
+#include "reallocator.h"
+#include "types.h"
 
 #if UNTIL_BUFFER
 #  include "UniqueBuffer.h"

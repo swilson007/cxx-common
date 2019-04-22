@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "HiResTimer.h"
-#include "Strings.h"
-#include "SystemTraits.h"
+#include "assert.h"
+#include "hi_res_timer.h"
+#include "strings.h"
+#include "system_traits.h"
 
 #include <iostream>
 #include <mutex>

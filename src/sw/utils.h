@@ -18,9 +18,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "Strings.h"
-#include "SystemTraits.h"
+#include "assert.h"
+#include "strings.h"
+#include "system_traits.h"
 
 #include <algorithm>
 #include <array>

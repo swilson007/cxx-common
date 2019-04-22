@@ -17,8 +17,8 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 #include <gtest/gtest.h>
-#include <sw/HiResTimer.h>
-#include <sw/Vector.h>
+#include <sw/hi_res_timer.h>
+#include <sw/vector.h>
 
 #include <iostream>
 #include <random>

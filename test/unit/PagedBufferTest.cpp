@@ -16,9 +16,9 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <sw/HiResTimer.h>
-#include <sw/PagedBuffer.h>
-#include <sw/Strings.h>
+#include <sw/hi_res_timer.h>
+#include <sw/paged_buffer.h>
+#include <sw/strings.h>
 
 #include <gtest/gtest.h>
 

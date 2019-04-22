@@ -18,9 +18,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "MixinOps.h"
-#include "Types.h"
+#include "assert.h"
+#include "mixin_ops.h"
+#include "types.h"
 
 #include <atomic>
 #include <cstdint>

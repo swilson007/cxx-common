@@ -18,8 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "Types.h"
+#include "assert.h"
+#include "types.h"
 
 #include <array>
 #include <vector>

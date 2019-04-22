@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "FixedWidthIntLiterals.h"
-#include "Misc.h"
-#include "Types.h"
+#include "assert.h"
+#include "fixed_width_int_literals.h"
+#include "misc.h"
+#include "types.h"
 
 #include <cstring>
 #include <iostream>

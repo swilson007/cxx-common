@@ -18,10 +18,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "Assert.h"
-#include "FixedWidthIntLiterals.h"
-#include "Reallocator.h"
-#include "Types.h"
+#include "assert.h"
+#include "fixed_width_int_literals.h"
+#include "reallocator.h"
+#include "types.h"
 
 #include <memory>
 

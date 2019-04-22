@@ -18,8 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include "SystemTraits.h"
-#include "Utils.h"
+#include "system_traits.h"
+#include "utils.h"
 
 #include <array>
 #include <iostream>
