@@ -28,7 +28,7 @@ namespace sw {
 
 /// Base64 encoder that supports:
 ///  * Standard encoding
-///  * URL/Filename safe perhttps://en.wikipedia.org/wiki/Base64#Variants_summary_table
+///  * URL/Filename safe per https://en.wikipedia.org/wiki/Base64#Variants_summary_table
 ///  * Optional padding. Filename version defaults to no padding
 
 namespace detail {
