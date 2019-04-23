@@ -21,7 +21,6 @@
 #include "assert.h"
 #include "types.h"
 
-#include <array>
 #include <vector>
 
 namespace sw {

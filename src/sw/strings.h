@@ -44,6 +44,26 @@ inline void trimEndingChar(std::string& str, char trimChar) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Determines if 'str' ends with 'suffix'.
+/// This is for pre-c++ 20
+inline bool endsWith(const std::string& str, const std::string& suffix) {
+  auto const strLen = str.length();
+  auto const suffixLen = suffix.length();
+  bool result = (strLen >= suffixLen) && (std::memcmp(&str[strLen - suffixLen], suffix.data(), suffixLen) == 0);
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Determines if 'str' starts with 'prefix'.
+/// This is for pre-c++ 20
+inline bool startsWith(const std::string& str, const std::string& prefix) {
+  auto const strLen = str.length();
+  auto const prefixLen = prefix.length();
+  bool result = (strLen >= prefixLen) && (std::memcmp(str.data(), prefix.data(), prefixLen) == 0);
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Non-owning wrapper for std::string or const char*. This is intended to solve
 /// the conundrum of needing a function that takes a const char* vs a const
 /// std::string&, and always avoiding a copy. Unlike std::string_view, StringWrapper

@@ -26,6 +26,7 @@ std::string toStr(const std::string& s) {
   return s;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 TEST(StringsTest, testStringWrapperBasic) {
   StringWrapper s1 = "foobar";
   ASSERT_TRUE("foobar" == s1);
@@ -35,6 +36,26 @@ TEST(StringsTest, testStringWrapperBasic) {
   ASSERT_TRUE(ss1 == ss1);
   ASSERT_TRUE(ss1 == s1);
   ASSERT_TRUE(ss1 == s1.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST(StringsTest, endsWith) {
+  std::string s = "foobar.exe";
+  ASSERT_TRUE(sw::endsWith(s, ".exe"));
+  ASSERT_TRUE(sw::endsWith(s, "exe"));
+  ASSERT_TRUE(sw::endsWith(s, "xe"));
+  ASSERT_FALSE(sw::endsWith(s, ".ex"));
+  ASSERT_FALSE(sw::endsWith(s, "foobar.exe2"));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST(StringsTest, startsWith) {
+  std::string s = "foobar.exe";
+  ASSERT_TRUE(sw::startsWith(s, "foobar"));
+  ASSERT_TRUE(sw::startsWith(s, "foo"));
+  ASSERT_TRUE(sw::startsWith(s, "f"));
+  ASSERT_FALSE(sw::startsWith(s, "oobar"));
+  ASSERT_FALSE(sw::startsWith(s, "foobar.exef"));
 }
 
 }  // namespace sw

@@ -32,17 +32,17 @@ TEST(Base64Test, basic) {
   std::cout << "b64('Ma')='" << base64Encode(std::string("Ma")) << "'" << std::endl;
   std::cout << "b64('M')='" << base64Encode(std::string("M")) << "'" << std::endl;
 
-  std::cout << "b64('Mang')='" << base64FilenameEncode("Mang") << "'" << std::endl;
-  std::cout << "b64('Man')='" << base64FilenameEncode("Man") << "'" << std::endl;
-  std::cout << "b64('Ma')='" << base64FilenameEncode(std::string("Ma")) << "'" << std::endl;
-  std::cout << "b64('M')='" << base64FilenameEncode(std::string("M")) << "'" << std::endl;
+  std::cout << "b64('Mang')='" << base64UrlEncode("Mang") << "'" << std::endl;
+  std::cout << "b64('Man')='" << base64UrlEncode("Man") << "'" << std::endl;
+  std::cout << "b64('Ma')='" << base64UrlEncode(std::string("Ma")) << "'" << std::endl;
+  std::cout << "b64('M')='" << base64UrlEncode(std::string("M")) << "'" << std::endl;
 #endif
 
   ASSERT_EQ(base64Encode("Encode to Base64 format"), "RW5jb2RlIHRvIEJhc2U2NCBmb3JtYXQ=");
   ASSERT_EQ(base64Encode("Easy to"), "RWFzeSB0bw==");
   ASSERT_EQ(base64Encode("<>?"), "PD4/");
 
-  ASSERT_EQ(base64FilenameEncode("<>?"), "PD4_");
+  ASSERT_EQ(base64UrlEncode("<>?"), "PD4_");
 }
 
 TEST(Base64Test, uuid) {
@@ -50,7 +50,7 @@ TEST(Base64Test, uuid) {
   for (sizex i = 0; i < 10; ++i) {
     Uuid u1 = Uuid::create();
     std::cout << "u1=" << u1.toString() << ", b64=" << u1.toBase64()
-              << ", b64f=" << u1.toBase64Filename() << std::endl;
+              << ", b64f=" << u1.toBase64Url() << std::endl;
   }
 #endif
   // TODO

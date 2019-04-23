@@ -27,9 +27,9 @@
 namespace sw {
 
 /// Base64 encoder that supports:
-///  * Standard encoding
-///  * URL/Filename safe per https://en.wikipedia.org/wiki/Base64#Variants_summary_table
-///  * Optional padding. Filename version defaults to no padding
+///  * Standard encoding, or
+///  * URL/Filename safe encoding per https://en.wikipedia.org/wiki/Base64#Variants_summary_table
+///  * Optional '=' padding. URL/Filename version defaults to no padding, Standard defaults to padded
 
 namespace detail {
 
@@ -42,7 +42,7 @@ struct Base64Traits {
   }
 };
 
-struct Base64FilenameTraits {
+struct Base64UrlTraits {
   static constexpr const char* kEncode =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
   static char encode(byte bits6) {
@@ -76,18 +76,18 @@ inline std::string base64Encode(const char* str, sizex len, bool pad = true) {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Do url & filename safe base64 encoding
-inline std::string base64FilenameEncode(const byte source[], sizex sourceLen, bool pad = false) {
-  return base64Encoder<::sw::detail::Base64FilenameTraits>(source, sourceLen, pad);
+inline std::string base64UrlEncode(const byte source[], sizex sourceLen, bool pad = false) {
+  return base64Encoder<::sw::detail::Base64UrlTraits>(source, sourceLen, pad);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-inline std::string base64FilenameEncode(const std::string& str, bool pad = false) {
-  return base64FilenameEncode(sw::utils::saferAlias<const byte*>(str.data()), str.size(), pad);
+inline std::string base64UrlEncode(const std::string& str, bool pad = false) {
+  return base64UrlEncode(sw::utils::saferAlias<const byte*>(str.data()), str.size(), pad);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-inline std::string base64FilenameEncode(const char* str, sizex len, bool pad = false) {
-  return base64FilenameEncode(sw::utils::saferAlias<const byte*>(str), len, pad);
+inline std::string base64UrlEncode(const char* str, sizex len, bool pad = false) {
+  return base64UrlEncode(sw::utils::saferAlias<const byte*>(str), len, pad);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
