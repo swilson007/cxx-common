@@ -74,9 +74,9 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Copies 'count' bytes from the source buffer into this buffer.
-  /// The buffer will expand if needed.
-  void copyInto(const byte* source, sizex count) { return copyInto(size_, source, count); }
+  /// Copies 'count' bytes from the source buffer onto the end of the paged array,
+  /// growing the total array size by 'count'
+  void append(const byte* source, sizex count) { return copyInto(size_, source, count); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Copies 'count' bytes from the source buffer into this buffer starting

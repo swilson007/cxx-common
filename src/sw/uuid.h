@@ -85,8 +85,8 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Convert the UUID into a filename-safe base64 string
-  std::string toBase64Filename() const {
-    return base64FilenameEncode(bytes_.data(), 16);
+  std::string toBase64Url() const {
+    return base64UrlEncode(bytes_.data(), 16);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
