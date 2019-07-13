@@ -78,11 +78,7 @@ inline bool startsWith(const std::string& str, const std::string& prefix) {
 ////////////////////////////////////////////////////////////////////////////////
 class StringWrapper {
   static constexpr sizex kUnsetSize = ~0_z;
-#if SW_ARCH_64BIT
-  static constexpr sizex kMaxStringLen = 0_z << 63;
-#else
-  static constexpr sizex kMaxStringLen = 0_z << 31;
-#endif
+  static constexpr sizex kMaxStringLen = ~0_z >> 1; 
 
 public:
   // Similar typedefs to std::string

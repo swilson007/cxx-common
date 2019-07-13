@@ -16,8 +16,9 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <gtest/gtest.h>
 #include <sw/strings.h>
+
+#include <gtest/gtest.h>
 
 namespace sw {
 
@@ -28,14 +29,22 @@ std::string toStr(const std::string& s) {
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(StringsTest, testStringWrapperBasic) {
-  StringWrapper s1 = "foobar";
-  ASSERT_TRUE("foobar" == s1);
-  ASSERT_TRUE(s1 == "foobar");
+  {
+    StringWrapper s1 = "foobar";
+    ASSERT_TRUE("foobar" == s1);
+    ASSERT_TRUE(s1 == "foobar");
 
-  std::string ss1 = "foobar";
-  ASSERT_TRUE(ss1 == ss1);
-  ASSERT_TRUE(ss1 == s1);
-  ASSERT_TRUE(ss1 == s1.c_str());
+    std::string ss1 = "foobar";
+    ASSERT_TRUE(ss1 == ss1);
+    ASSERT_TRUE(ss1 == s1);
+    ASSERT_TRUE(ss1 == s1.c_str());
+  }
+
+  {
+    StringWrapper s1 = StringWrapper("foobar", 6);
+    ASSERT_TRUE("foobar" == s1);
+    ASSERT_TRUE(s1 == "foobar");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
