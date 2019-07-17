@@ -231,7 +231,6 @@ public:
   }
 
   Node* pushFront(const T& value) {
-    // Create a new node that's going to go on the front
     auto* oldHead = headNode();
     auto* end = endNode();
     auto* newHead = makeNode(end, oldHead, value);
@@ -241,7 +240,6 @@ public:
   }
 
   Node* pushFront(T&& value) {
-    // Create a new node that's going to go on the front
     auto* oldHead = headNode();
     auto* end = endNode();
     auto* newHead = makeNode(end, oldHead, std::move(value));
@@ -316,13 +314,14 @@ private:
   node_allocator allocNode() const noexcept { return node_allocator(); }
 
   // We only hold the "end", which is an artificial node that is conceptually
-  // *after* the tail. This complicates things vs. holding "head" and "tail"
-  // as members, but it will facilitate cleaner iteration.
+  // *after* the tail. This solves the iterator needs and also allows that no
+  // node pointers are ever null. I originally thought it might make the
+  // implementation more complex, but getting rid of null nodes has added some
+  // elegance. For 'end', the nodes are defined as:
   //   end_.next points to the head of the list
   //   end_.prev points to the tail of the list
-  // ALSO: no node pointers will ever be null. If it's an empty list, then the
-  //  end_.next points to end_, and end_.prev point to end_. This lets us avoid
-  //  any null checking
+  // ALSO: Since no node pointers are null, when it's an empty list, end_.next points
+  // to end_, and end_.prev point to end_.
   Node end_ = Node{endNode(), endNode()};
 };
 
