@@ -96,6 +96,13 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   ~List() {
     // TODO: need to manually delete the list
+    Node* end = endNode();
+    Node* node = end->next;
+    while (node != end) {
+      Node* deleteMe = node;
+      node = node->next;
+      deleteNode(deleteMe);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////

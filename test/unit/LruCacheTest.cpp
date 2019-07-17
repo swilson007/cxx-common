@@ -39,6 +39,7 @@ TEST(LruCacheTest, pushFront) {
   }
 }
 
+#if 0
 TEST(LruCacheTest, pushBack) {
   lru_detail::List<int> list;
   list.pushBack(1);
@@ -78,5 +79,6 @@ TEST(LruCacheTest, moveNodes) {
   }
 
 }
+#endif
 
 }  // namespace sw
