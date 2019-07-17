@@ -18,8 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#include <sw/types.h>
 #include <sw/assert.h>
+#include <sw/types.h>
 
 #if SW_USE_ROBIN_HASH_MAP
 // TODO: Put this in the project
@@ -28,8 +28,8 @@
 #  include <unordered_map>
 #endif
 
-#include <memory>
 #include <list>
+#include <memory>
 
 namespace sw {
 
@@ -76,12 +76,12 @@ public:
   using difference_type = ptrdiffx;
   using reference = value_type&;
   using const_reference = const value_type&;
-  using allocator = std::allocator<T>; // custom is TODO
+  using allocator = std::allocator<T>;  // custom is TODO
 
   // Interesting problem here. Looking at stdlib list class, it's using 'rebind' which
   // is related to std::allocator. But, rebind is going away. Looks like polymorphic
   // allocator will be the way in the future.
-  using node_allocator = std::allocator<Node>; // custom is TODO
+  using node_allocator = std::allocator<Node>;  // custom is TODO
 
 public:
   List() = default;
@@ -293,10 +293,10 @@ private:
   Node* headNode() noexcept { return end_.next; }
 
   /// Use a function to create nodes so we can drop an allocator in later
-  template <typename ...Args>
+  template <typename... Args>
   Node* makeNode(Args&&... args) {
     Node* nodeMem = allocNode().allocate(1);
-    Node* node = new(nodeMem) Node(std::forward<Args>(args)...);
+    Node* node = new (nodeMem) Node(std::forward<Args>(args)...);
     return node;
   };
 
@@ -331,9 +331,32 @@ private:
 template <typename Key, typename T>
 class LruCache {
 public:
-  T& operator[](const Key& key);
-  sizex size() const;
-  bool empty() const;
+  T& operator[](const Key& key) {
+    auto iter = map_.find(key);
+    auto* node = [&]() {
+      if (iter == map_.end()) {
+        // No item. We needs to create a default value in that case
+        // First insert a default value to the front of the list
+        auto* node = list_.pushFront(T());
+
+        // Now we can insert the node into the map. It's already in the correct order in the list
+        auto result = map_.insert(std::make_pair(key, node));
+        SW_ASSERT(result.second == true);
+        iter = result.first;
+        return node;
+      }
+
+      // The item is used - bring it to the front of the list
+      auto* node = iter->second;
+      list_.moveToFront(node);
+      return node;
+    }();
+
+    return node->value;
+  }
+
+  sizex size() const { return map_.size(); }
+  bool empty() const { return map_.empty(); }
 
 #if TODO  // maybe?
   void insert(const Key& key, const T& value);
@@ -341,6 +364,13 @@ public:
   T& find(const Key& key);
   T remove(const Key& key);
 #endif
+
+private:
+  using List = lru_detail::List<T>;
+  using Node = typename List::Node;
+
+  SysHashMap<Key, Node*> map_;
+  List list_;
 };
 
 }  // namespace sw

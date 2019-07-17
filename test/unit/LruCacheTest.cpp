@@ -21,6 +21,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <string>
 
 namespace sw {
 
@@ -39,7 +40,6 @@ TEST(LruCacheTest, pushFront) {
   }
 }
 
-#if 0
 TEST(LruCacheTest, pushBack) {
   lru_detail::List<int> list;
   list.pushBack(1);
@@ -77,8 +77,16 @@ TEST(LruCacheTest, moveNodes) {
     ASSERT_EQ(3, *iter++);
     ASSERT_EQ(iter, list.end());
   }
-
 }
-#endif
+
+TEST(LruCacheTest, lruBasic) {
+  LruCache<int, std::string> lru;
+  auto& one = lru[1];
+  ASSERT_EQ("", one);
+  one = "1";
+  auto& oneAgain = lru[1];
+  ASSERT_EQ("1", oneAgain);
+  ASSERT_EQ(one, oneAgain);
+}
 
 }  // namespace sw
