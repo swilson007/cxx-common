@@ -89,4 +89,14 @@ TEST(LruCacheTest, lruBasic) {
   ASSERT_EQ(one, oneAgain);
 }
 
+TEST(LruCacheTest, lruDelete) {
+  LruCache<int, std::string> lru;
+  lru[1] = "1";
+  lru[2] = "2";
+  lru[3] = "3";
+  ASSERT_EQ(3, lru.size());
+  lru.erase(2);
+  ASSERT_EQ(2, lru.size());
+}
+
 }  // namespace sw

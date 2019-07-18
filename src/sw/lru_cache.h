@@ -57,6 +57,7 @@ namespace lru_detail {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Custom allocator is TODO if needed
+/// Pretty much everything not in here is TODO if needed.
 template <typename T>
 class List {
 public:
@@ -88,8 +89,6 @@ public:
 
   List(const List&) = delete;
   List& operator=(const List&) = delete;
-
-  // TODO move
   List(List&&) = delete;
   List& operator=(List&&) = delete;
 
@@ -129,6 +128,8 @@ public:
   };
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// This iterator isn't really useful for the LruCache class, but it is helpful for
+  /// testing, so I'll keep it around.
   class Iterator {
   public:
     Iterator& operator++() {
@@ -167,51 +168,27 @@ public:
   };
 
   ////////////////////////////////////////////////////////////////////////////////
-  class ConstIterator {
-  public:
-    ConstIterator& operator++() {
-      node_ = node_->next;
-      return *this;
-    }
-
-    ConstIterator operator++(int) {
-      ConstIterator tmp = *this;
-      operator++();
-      return tmp;
-    }
-
-    ConstIterator& operator--() {
-      // If the iterator is at the end, then it goes back to the tail
-      node_ = node_->prev;
-      return *this;
-    }
-
-    ConstIterator operator--(int) {
-      ConstIterator tmp = *this;
-      operator--();
-      return tmp;
-    }
-
-    const T& operator*() { return node_->value; }
-
-    friend bool operator==(const Iterator& i1, const Iterator& i2) { return i1.node_ == i2.node_; }
-    friend bool operator!=(const Iterator& i1, const Iterator& i2) { return i1.node_ != i2.node_; }
-
-  private:
-    explicit ConstIterator(Node* node) noexcept : node_(node) {}
-    Node* node_;
-    friend class List;
-  };
-
   bool empty() const { return headNode() != nullptr; }
 
+  ////////////////////////////////////////////////////////////////////////////////
   Iterator begin() noexcept { return Iterator(headNode()); }
   Iterator end() noexcept { return Iterator(endNode()); }
-  ConstIterator begin() const noexcept { return ConstIterator(headNode()); }
-  ConstIterator end() const noexcept { return ConstIterator(endNode()); }
-  ConstIterator cbegin() const noexcept { return ConstIterator(headNode()); }
-  ConstIterator cend() const noexcept { return ConstIterator(endNode()); }
 
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Remove the given node from the list. All memory associated with the node will
+  /// be deleted
+  void erase(Node*&& node) {
+    SW_ASSERT(node != nullptr);
+
+    // First stitch out the node from where it's at
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+
+    // And delete it
+    deleteNode(node);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
   Node* pushBack(const T& value) {
     auto* oldTail = tailNode();
     auto* end = endNode();
@@ -221,6 +198,7 @@ public:
     return newTail;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   Node* pushBack(T&& value) {
     auto* oldTail = tailNode();
     auto* end = endNode();
@@ -230,6 +208,7 @@ public:
     return newTail;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   Node* pushFront(const T& value) {
     auto* oldHead = headNode();
     auto* end = endNode();
@@ -239,6 +218,7 @@ public:
     return newHead;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   Node* pushFront(T&& value) {
     auto* oldHead = headNode();
     auto* end = endNode();
@@ -248,11 +228,15 @@ public:
     return newHead;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   Node* frontNode() { return headNode(); }
   const Node* frontNode() const { return headNode(); }
+
+  ////////////////////////////////////////////////////////////////////////////////
   Node* backNode() { return tailNode(); }
   const Node* backNode() const { return tailNode(); }
 
+  ////////////////////////////////////////////////////////////////////////////////
   /// Moves the given node to the back of the list
   void moveToBack(Node* node) {
     SW_ASSERT(node != nullptr);
@@ -270,6 +254,7 @@ public:
     node->next = end;
   }
 
+  ////////////////////////////////////////////////////////////////////////////////
   /// Moves the given node to the front of the list
   void moveToFront(Node* node) {
     SW_ASSERT(node != nullptr);
@@ -292,7 +277,7 @@ private:
   Node* tailNode() noexcept { return end_.prev; }
   Node* headNode() noexcept { return end_.next; }
 
-  /// Use a function to create nodes so we can drop an allocator in later
+  /// Using a function to create nodes so we can drop an allocator in later
   template <typename... Args>
   Node* makeNode(Args&&... args) {
     Node* nodeMem = allocNode().allocate(1);
@@ -314,8 +299,9 @@ private:
   node_allocator allocNode() const noexcept { return node_allocator(); }
 
   // We only hold the "end", which is an artificial node that is conceptually
-  // *after* the tail. This solves the iterator needs and also allows that no
-  // node pointers are ever null. I originally thought it might make the
+  // *after* the tail. It's also *before* the head, but that's more of an implementation
+  // detail than a conceptual help. This solves the iterator "end" needs and also
+  // allows that no node pointers are ever null. I originally thought it might make the
   // implementation more complex, but getting rid of null nodes has added some
   // elegance. For 'end', the nodes are defined as:
   //   end_.next points to the head of the list
@@ -331,6 +317,17 @@ private:
 template <typename Key, typename T>
 class LruCache {
 public:
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Return the number of items in the map
+  sizex size() const { return map_.size(); }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Is the map empty?
+  bool empty() const { return map_.empty(); }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Extract the cached value for the given key. If the value isn't in the cache, a
+  // default constructed value will be created.
   T& operator[](const Key& key) {
     auto iter = map_.find(key);
     auto* node = [&]() {
@@ -346,7 +343,7 @@ public:
         return node;
       }
 
-      // The item is used - bring it to the front of the list
+      // The item already exists - bring it to the front of the list since it's been "used"
       auto* node = iter->second;
       list_.moveToFront(node);
       return node;
@@ -355,14 +352,32 @@ public:
     return node->value;
   }
 
-  sizex size() const { return map_.size(); }
-  bool empty() const { return map_.empty(); }
+  ////////////////////////////////////////////////////////////////////////////////
+  // Check if the given key is mapped to a value in the cache
+  bool exists(const Key& key) {
+    auto iter = map_.find(key);
+    return iter != map_.end();
+  }
 
-#if TODO  // maybe?
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Removed any mapped value
+  sizex erase(const Key& key) {
+    auto iter = map_.find(key);
+    if (iter == map_.end()) {
+      return 0;
+    }
+
+    // Remove the node from the list and the map
+    auto* node = iter->second;
+    list_.erase(std::move(node));
+    map_.erase(iter);
+    return 1;
+  }
+
+#if TODO  // as needed?
   void insert(const Key& key, const T& value);
   void insert(const Key& key, T&& value);
   T& find(const Key& key);
-  T remove(const Key& key);
 #endif
 
 private:
