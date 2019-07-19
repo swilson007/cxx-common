@@ -54,11 +54,33 @@ using SysHashMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 /// the front of the list (also O(1)). Items at the end of the list can get speculatively
 /// purged.
 ///
+/// To add something to the cache, use put `cache.put(key, value)`. I chose
+/// *not* to use the name `insert()` in similar vein to std::unordered_map because
+/// the behavior is a little different. `put` will update an existing value while `insert`
+/// won't.
+///
+/// There's a number of ways to extract items from the cache.
+/// * Use `operator[]`. This behaves just like std::unordered_map in that it will access the
+///   cache item if it exists, or create a default value item if it doesn't exist.
+///    cache[1] = "foo";
+///    std::cout << cache[1] << std::endl;
+/// * Use `get()` which copies out an item into an existing variable. Not perfect, but won't
+///   auto-create a default value if the cache item doesn't exist.
+///    std:string str;
+///    if (cache.get(1, str))
+///        std::cout << str << std::endl;
+/// * Use `find()` which behaves similar to `unordered_map::find()`. It will return an
+///   `UnorderedIterator` which equals `end()` if the item isn't in the cache.
+///    auto iter = cache.find(1);
+///    if (iter != cache.end())
+///        std::cout << *iter << std::endl;
+///
 /// Basically just writing this for fun... haven't done one before.
 ////////////////////////////////////////////////////////////////////////////////
-template <typename Key, typename T>
+template <typename Key, typename T, bool kAutoPurge = true>
 class LruCache {
-  using List = std::list<T>;
+  using KeyValuePair = std::pair<Key, T>;
+  using List = std::list<KeyValuePair>;
   using ListIter = typename List::iterator;
   using Map = SysHashMap<Key, ListIter>;
   using MapIter = typename Map::iterator;
@@ -67,6 +89,10 @@ class LruCache {
 public:
   class UnorderedIterator;
   class OrderedIterator;
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Creates the cache and sets the maximum size before items get purged.
+  LruCache(sizex maxSize = 10) : maxSize_(maxSize) {}
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Return the number of items in the map
@@ -114,15 +140,15 @@ public:
     if (iter == map_.end()) {
       // No item. We needs to create a default value in that case
       // First insert a default value to the front of the list, then add it to the map
-      list_.push_front(T());
+      list_.push_front(std::make_pair(key, T()));
       auto listIter = list_.begin();
       map_.insert(std::make_pair(key, listIter));
-      return *listIter;
+      return getValue(listIter);
     }
 
     // The item already exists - bring it to the front of the list since it's been "used"
     onValueUsed(iter);
-    return *iter->second;
+    return getValue(iter);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -131,11 +157,11 @@ public:
     auto iter = map_.find(key);
     if (iter == map_.end()) {
       // New item
-      list_.push_front(value);
+      list_.push_front(std::make_pair(key, value));
       map_.insert(std::make_pair(key, list_.begin()));
     } else {
       // Item already exists. Update the mapped value and push it to the front
-      *iter->second = value;
+      getValue(iter) = value;
       onValueUsed(iter);
     }
   }
@@ -146,12 +172,11 @@ public:
     auto iter = map_.find(key);
     if (iter == map_.end()) {
       // New item
-      list_.push_front(std::move(value));
+      list_.push_front(std::make_pair(key, std::move(value)));
       map_.insert(std::make_pair(key, list_.begin()));
     } else {
       // Item already exists. Update the mapped value and push it to the front
-      auto listIter = iter->second;
-      *iter->second = std::move(value);
+      getValue(iter) = std::move(value);
       onValueUsed(iter);
     }
   }
@@ -160,13 +185,13 @@ public:
   /// @value Will be a copy of the value if it exists, otherwise it is unchanged
   /// @return true if the value was found
   bool get(const Key& key, T& value) {
-    ConstMapIter iter = map_.find(key);
+    MapIter iter = map_.find(key);
     if (iter == map_.end()) {
       return false;
     }
 
     onValueUsed(iter);
-    value = *iter->second;
+    value = getValue(iter);
     return true;
   }
 
@@ -184,10 +209,14 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  UnorderedIterator beginUnordered() noexcept { return UnorderedIterator(map_.begin()); }
-  UnorderedIterator endUnordered() noexcept { return UnorderedIterator(map_.end()); }
-  OrderedIterator begin() noexcept { return OrderedIterator(list_.begin()); }
-  OrderedIterator end() noexcept { return OrderedIterator(list_.end()); }
+  UnorderedIterator begin() noexcept { return UnorderedIterator(map_.begin()); }
+  UnorderedIterator end() noexcept { return UnorderedIterator(map_.end()); }
+
+  /// Ordered iteration. I suspect this is primarily for debugging, so it's not the
+  /// primary begin/end. ie. you'll have to use a full for loop. Also, the ordered
+  /// iterator only contains the cache'd value, and not the key.
+  OrderedIterator beginOrdered() noexcept { return OrderedIterator(list_.begin()); }
+  OrderedIterator endOrdered() noexcept { return OrderedIterator(list_.end()); }
 
   // TODO: purge functions
 
@@ -217,12 +246,12 @@ public:
       return tmp;
     }
 
-    const Key& key() const { return iter_->first; }
-    T& value() { return *iter_->second; }
-    const T& value() const { return *iter_->second; }
+    const Key& key() const { return LruCache::getKey(iter_); }
+    T& value() { return LruCache::getValue(iter_); }
+    const T& value() const { return LruCache::getValue(iter_); }
 
-    T& operator*() { return *iter_->second; }
-    const T& operator*() const { return *iter_->second; }
+    T& operator*() { return LruCache::getValue(iter_); }
+    const T& operator*() const { return LruCache::getValue(iter_); }
 
     friend bool operator==(const UnorderedIterator& i1, const UnorderedIterator& i2) {
       return i1.iter_ == i2.iter_;
@@ -235,7 +264,7 @@ public:
     explicit UnorderedIterator(MapIter&& iter) noexcept : iter_(std::move(iter)) {}
     MapIter iter_;
 
-    friend LruCache;
+    friend class LruCache;
   };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -264,11 +293,12 @@ public:
       return tmp;
     }
 
-    T& value() { return *iter_; }
-    const T& value() const { return *iter_; }
+    const Key& key() const { return LruCache::getKey(iter_); }
+    T& value() { return LruCache::getValue(iter_); }
+    const T& value() const { return LruCache::getValue(iter_); }
 
-    T& operator*() { return *iter_; }
-    const T& operator*() const { return *iter_; }
+    T& operator*() { return LruCache::getValue(iter_); }
+    const T& operator*() const { return LruCache::getValue(iter_); }
 
     friend bool operator==(const OrderedIterator& i1, const OrderedIterator& i2) {
       return i1.iter_ == i2.iter_;
@@ -281,12 +311,31 @@ public:
     explicit OrderedIterator(ListIter&& iter) noexcept : iter_(std::move(iter)) {}
     ListIter iter_;
 
-    friend LruCache;
+    friend class LruCache;
   };
 
 private:
+  static const Key& getKey(const ListIter& listIter) { return (*listIter).first; }
+  static T& getValue(const ListIter& listIter) { return (*listIter).second; }
+  static const Key& getKey(const MapIter& mapIter) { return mapIter->first; }
+  static T& getValue(const MapIter& mapIter) { return getValue(mapIter->second); }
+
+  ////////////////////////////////////////////////////////////////////////////////
   void onValueUsed(const ConstMapIter& iter) {
     list_.splice(list_.begin(), list_, iter->second);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  void doPurge() {
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Will auto purge the cache if configured. Should optimize to a NOP when auto
+  /// purge is disabled
+  void doAutoPurge() {
+    if (kAutoPurge) {
+      doPurge();
+    }
   }
 
 private:
@@ -294,6 +343,7 @@ private:
   /// unless you erase the underlying item. They're effectively like having a node pointer
   SysHashMap<Key, ListIter> map_;
   List list_;
+  sizex maxSize_ = 10;
 };
 
 }  // namespace sw

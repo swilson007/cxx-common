@@ -74,7 +74,7 @@ TEST(LruCacheTest, lruFind) {
   lru.put(3, "3");
 
   auto iter = lru.find(2);
-  ASSERT_NE(lru.endUnordered(), iter);
+  ASSERT_NE(lru.end(), iter);
   ASSERT_EQ("2", *iter);
   ASSERT_EQ("2", iter.value());
   ASSERT_EQ(2, iter.key());
@@ -86,11 +86,20 @@ TEST(LruCacheTest, orderedIter) {
   lru.put(2, "2");
   lru.put(1, "1");
 
-  auto iter = lru.begin();
-  ASSERT_EQ("1", *iter++);
-  ASSERT_EQ("2", *iter++);
-  ASSERT_EQ("3", *iter++);
-  ASSERT_EQ(lru.end(), iter);
+  auto iter = lru.beginOrdered();
+  ASSERT_EQ("1", *iter);
+  ASSERT_EQ(1, iter.key());
+  ++iter;
+
+  ASSERT_EQ("2", *iter);
+  ASSERT_EQ(2, iter.key());
+  ++iter;
+
+  ASSERT_EQ("3", *iter);
+  ASSERT_EQ(3, iter.key());
+  ++iter;
+
+  ASSERT_EQ(lru.endOrdered(), iter);
 }
 
 }  // namespace sw
