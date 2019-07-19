@@ -101,9 +101,18 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Check if the given key is mapped to a value in the cache
-  bool exists(const Key& key) noexcept {
+  bool exists(const Key& key) const noexcept {
     auto iter = map_.find(key);
     return iter != map_.end();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Refreshes a cache item if it exists, causing it to move to the front
+  void refresh(const Key& key) noexcept {
+    auto iter = map_.find(key);
+    if (iter != map_.end()) {
+      onValueUsed(iter);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +179,8 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Find the cache element with the specified key. If it doesn't exist, endUnordered() is
-  /// returned.
+  /// returned. If it does exist, it will be refreshed to the front of the cache, and
+  /// and UnorderedIterator to it is returned.
   UnorderedIterator find(const Key& key) {
     MapIter iter = map_.find(key);
     if (iter != map_.end()) {
@@ -189,6 +199,7 @@ public:
   // TODO: purge functions
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// Accessing an element using the unordered iterator won't change the LRU ordering
   class UnorderedIterator {
   public:
     UnorderedIterator& operator++() {
@@ -287,8 +298,8 @@ private:
   }
 
 private:
-  /// The map will hold list iterators. List iterators don't invalidate unless you
-  /// erase the underlying item. They're effectively like having a node pointer
+  /// The map will hold list iterators. Note that list iterators don't invalidate
+  /// unless you erase the underlying item. They're effectively like having a node pointer
   SysHashMap<Key, ListIter> map_;
   List list_;
 };
