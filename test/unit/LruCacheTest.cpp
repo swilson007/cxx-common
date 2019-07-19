@@ -22,62 +22,9 @@
 
 #include <iostream>
 #include <string>
+#include <list>
 
 namespace sw {
-
-TEST(LruCacheTest, pushFront) {
-  lru_detail::List<int> list;
-  list.pushFront(3);
-  list.pushFront(2);
-  list.pushFront(1);
-
-  {
-    auto iter = list.begin();
-    ASSERT_EQ(1, *iter++);
-    ASSERT_EQ(2, *iter++);
-    ASSERT_EQ(3, *iter++);
-    ASSERT_EQ(iter, list.end());
-  }
-}
-
-TEST(LruCacheTest, pushBack) {
-  lru_detail::List<int> list;
-  list.pushBack(1);
-  list.pushBack(2);
-  list.pushBack(3);
-
-  {
-    auto iter = list.begin();
-    ASSERT_EQ(1, *iter++);
-    ASSERT_EQ(2, *iter++);
-    ASSERT_EQ(3, *iter++);
-    ASSERT_EQ(iter, list.end());
-  }
-}
-
-TEST(LruCacheTest, moveNodes) {
-  lru_detail::List<int> list;
-  list.pushBack(1);
-  auto* node2 = list.pushBack(2);
-  list.pushBack(3);
-  list.moveToBack(node2);
-  {
-    auto iter = list.begin();
-    ASSERT_EQ(1, *iter++);
-    ASSERT_EQ(3, *iter++);
-    ASSERT_EQ(2, *iter++);
-    ASSERT_EQ(iter, list.end());
-  }
-
-  list.moveToFront(node2);
-  {
-    auto iter = list.begin();
-    ASSERT_EQ(2, *iter++);
-    ASSERT_EQ(1, *iter++);
-    ASSERT_EQ(3, *iter++);
-    ASSERT_EQ(iter, list.end());
-  }
-}
 
 TEST(LruCacheTest, lruBasic) {
   LruCache<int, std::string> lru;
@@ -89,6 +36,24 @@ TEST(LruCacheTest, lruBasic) {
   ASSERT_EQ(one, oneAgain);
 }
 
+TEST(LruCacheTest, lruPutAndGet) {
+  LruCache<int, std::string> lru;
+  lru.put(1, "1");
+  lru.put(2, "2");
+  lru.put(3, "3");
+  ASSERT_EQ(3, lru.size());
+  ASSERT_EQ("1", lru[1]);
+  ASSERT_EQ("2", lru[2]);
+  ASSERT_EQ("3", lru[3]);
+  lru.put(3, "33");
+  ASSERT_EQ("33", lru[3]);
+
+  std::string str;
+  ASSERT_FALSE(lru.get(4, str));
+  ASSERT_TRUE(lru.get(3, str));
+  ASSERT_EQ("33", str);
+}
+
 TEST(LruCacheTest, lruDelete) {
   LruCache<int, std::string> lru;
   lru[1] = "1";
@@ -97,6 +62,35 @@ TEST(LruCacheTest, lruDelete) {
   ASSERT_EQ(3, lru.size());
   lru.erase(2);
   ASSERT_EQ(2, lru.size());
+  ASSERT_EQ("1", lru[1]);
+  ASSERT_EQ("3", lru[3]);
+  ASSERT_EQ("", lru[2]);
+}
+
+TEST(LruCacheTest, lruFind) {
+  LruCache<int, std::string> lru;
+  lru.put(1, "1");
+  lru.put(2, "2");
+  lru.put(3, "3");
+
+  auto iter = lru.find(2);
+  ASSERT_NE(lru.endUnordered(), iter);
+  ASSERT_EQ("2", *iter);
+  ASSERT_EQ("2", iter.value());
+  ASSERT_EQ(2, iter.key());
+}
+
+TEST(LruCacheTest, orderedIter) {
+  LruCache<int, std::string> lru;
+  lru.put(3, "3");
+  lru.put(2, "2");
+  lru.put(1, "1");
+
+  auto iter = lru.begin();
+  ASSERT_EQ("1", *iter++);
+  ASSERT_EQ("2", *iter++);
+  ASSERT_EQ("3", *iter++);
+  ASSERT_EQ(lru.end(), iter);
 }
 
 }  // namespace sw
