@@ -81,26 +81,22 @@ public:
   /// default constructed value will be created, placed in the cache, and returned.
   T& operator[](const Key& key) {
     auto iter = map_.find(key);
-    auto listIter = [&]() {
-      if (iter == map_.end()) {
-        // No item. We needs to create a default value in that case
-        // First insert a default value to the front of the list
-        list_.push_front(T());
-        auto listIter = list_.begin();
+    if (iter == map_.end()) {
+      // No item. We needs to create a default value in that case
+      // First insert a default value to the front of the list
+      list_.push_front(T());
+      auto listIter = list_.begin();
 
-        // Now we can insert the node into the map. It's already in the correct order in the list
-        auto result = map_.insert(std::make_pair(key, listIter));
-        SW_ASSERT(result.second == true);
-        iter = result.first;
-        return listIter;
-      }
+      // Now we can insert the node into the map. It's already in the correct order in the list
+      auto result = map_.insert(std::make_pair(key, listIter));
+      SW_ASSERT(result.second == true);
+      iter = result.first;
+      return *listIter;
+    }
 
-      // The item already exists - bring it to the front of the list since it's been "used"
-      onValueUsed(iter);
-      return iter->second;
-    }();
-
-    return *listIter;
+    // The item already exists - bring it to the front of the list since it's been "used"
+    onValueUsed(iter);
+    return *(iter->second);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +169,8 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Find the cache element with the specified key. If it doesn't exist, endUnordered() is returned.
+  /// Find the cache element with the specified key. If it doesn't exist, endUnordered() is
+  /// returned.
   UnorderedIterator find(const Key& key) {
     MapIter iter = map_.find(key);
     if (iter != map_.end()) {
@@ -223,8 +220,12 @@ public:
     T& operator*() { return *(iter_->second); }
     const T& operator*() const { return *(iter_->second); }
 
-    friend bool operator==(const UnorderedIterator& i1, const UnorderedIterator& i2) { return i1.iter_ == i2.iter_; }
-    friend bool operator!=(const UnorderedIterator& i1, const UnorderedIterator& i2) { return i1.iter_ != i2.iter_; }
+    friend bool operator==(const UnorderedIterator& i1, const UnorderedIterator& i2) {
+      return i1.iter_ == i2.iter_;
+    }
+    friend bool operator!=(const UnorderedIterator& i1, const UnorderedIterator& i2) {
+      return i1.iter_ != i2.iter_;
+    }
 
   private:
     explicit UnorderedIterator(MapIter&& iter) noexcept : iter_(std::move(iter)) {}
@@ -265,8 +266,12 @@ public:
     T& operator*() { return *iter_; }
     const T& operator*() const { return *iter_; }
 
-    friend bool operator==(const OrderedIterator& i1, const OrderedIterator& i2) { return i1.iter_ == i2.iter_; }
-    friend bool operator!=(const OrderedIterator& i1, const OrderedIterator& i2) { return i1.iter_ != i2.iter_; }
+    friend bool operator==(const OrderedIterator& i1, const OrderedIterator& i2) {
+      return i1.iter_ == i2.iter_;
+    }
+    friend bool operator!=(const OrderedIterator& i1, const OrderedIterator& i2) {
+      return i1.iter_ != i2.iter_;
+    }
 
   private:
     explicit OrderedIterator(ListIter&& iter) noexcept : iter_(std::move(iter)) {}
@@ -274,6 +279,7 @@ public:
 
     friend LruCache;
   };
+
 private:
   void onValueUsed(const ConstMapIter& iter) {
     auto listIter = iter->second;
