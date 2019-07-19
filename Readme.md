@@ -1,16 +1,15 @@
 # C++-common
-Just some common C++ stuff used in misc projects
+Just some common C++ stuff used in my misc projects.
 
 ## Design Constraints 
-* C++14
-  - Header only. Well maybe... I'm not happy about having OS includes in any header.
-  - Even though it's 2019/2018, C++17 isn't fully there yet as of this writing. (Esp MacOS)
+* Header only. Well maybe... I'm not happy about having OS includes in any header.
+* C++14 Even though it's 2018/2019, C++17 isn't fully there yet as of this writing. (Esp. on MacOS)
   
 ## C++ Style / Best Practices
 * Full-warnings enabled from day 1. -Wall, -pedantic, -Wextra, etc. 
 * clang-lint enabled builds
 * clang-format using google style with minor mods 
-* gtest from day 1. Unit tests where it makes sense
+* gtest from day 1. Unit tests where it makes sense (ie. where I have time)
 * Naming
   - Variables: lowerCamelCase (per-google & swilson)
   - Member Vars: `camelCase_` (per-google)  Note to self - switch this to the more 
@@ -30,3 +29,6 @@ Just some common C++ stuff used in misc projects
   - Functions: lowerCamelCase (per-google)
   - Namespaces: lower_snake_case (per-google)
   - No Hungarian. But, storage class prefix/suffixes where indicated 
+
+## Licensing
+MIT Licensing because freedom should mean freedom.
