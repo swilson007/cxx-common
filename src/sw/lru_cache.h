@@ -77,29 +77,6 @@ public:
   bool empty() const noexcept { return map_.empty(); }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Extract the cached value for the given key. If the value isn't in the cache, a
-  /// default constructed value will be created, placed in the cache, and returned.
-  T& operator[](const Key& key) {
-    auto iter = map_.find(key);
-    if (iter == map_.end()) {
-      // No item. We needs to create a default value in that case
-      // First insert a default value to the front of the list
-      list_.push_front(T());
-      auto listIter = list_.begin();
-
-      // Now we can insert the node into the map. It's already in the correct order in the list
-      auto result = map_.insert(std::make_pair(key, listIter));
-      SW_ASSERT(result.second == true);
-      iter = result.first;
-      return *listIter;
-    }
-
-    // The item already exists - bring it to the front of the list since it's been "used"
-    onValueUsed(iter);
-    return *(iter->second);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////
   /// Check if the given key is mapped to a value in the cache
   bool exists(const Key& key) const noexcept {
     auto iter = map_.find(key);
@@ -130,18 +107,35 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// Extract the cached value for the given key. If the value isn't in the cache, a
+  /// default constructed value will be created, placed in the cache, and returned.
+  T& operator[](const Key& key) {
+    auto iter = map_.find(key);
+    if (iter == map_.end()) {
+      // No item. We needs to create a default value in that case
+      // First insert a default value to the front of the list, then add it to the map
+      list_.push_front(T());
+      auto listIter = list_.begin();
+      map_.insert(std::make_pair(key, listIter));
+      return *listIter;
+    }
+
+    // The item already exists - bring it to the front of the list since it's been "used"
+    onValueUsed(iter);
+    return *iter->second;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
   /// Inserts or updates mapped value associated with the given key
   void put(const Key& key, const T& value) {
     auto iter = map_.find(key);
     if (iter == map_.end()) {
       // New item
       list_.push_front(value);
-      auto listIter = list_.begin();
-      auto result = map_.insert(std::make_pair(key, listIter));
+      map_.insert(std::make_pair(key, list_.begin()));
     } else {
       // Item already exists. Update the mapped value and push it to the front
-      auto listIter = iter->second;
-      *listIter = value;
+      *iter->second = value;
       onValueUsed(iter);
     }
   }
@@ -153,12 +147,11 @@ public:
     if (iter == map_.end()) {
       // New item
       list_.push_front(std::move(value));
-      auto listIter = list_.begin();
-      auto result = map_.insert(std::make_pair(key, listIter));
+      map_.insert(std::make_pair(key, list_.begin()));
     } else {
       // Item already exists. Update the mapped value and push it to the front
       auto listIter = iter->second;
-      *listIter = std::move(value);
+      *iter->second = std::move(value);
       onValueUsed(iter);
     }
   }
@@ -173,7 +166,7 @@ public:
     }
 
     onValueUsed(iter);
-    value = *(iter->second);
+    value = *iter->second;
     return true;
   }
 
@@ -225,11 +218,11 @@ public:
     }
 
     const Key& key() const { return iter_->first; }
-    T& value() { return *(iter_->second); }
-    const T& value() const { return *(iter_->second); }
+    T& value() { return *iter_->second; }
+    const T& value() const { return *iter_->second; }
 
-    T& operator*() { return *(iter_->second); }
-    const T& operator*() const { return *(iter_->second); }
+    T& operator*() { return *iter_->second; }
+    const T& operator*() const { return *iter_->second; }
 
     friend bool operator==(const UnorderedIterator& i1, const UnorderedIterator& i2) {
       return i1.iter_ == i2.iter_;
@@ -293,8 +286,7 @@ public:
 
 private:
   void onValueUsed(const ConstMapIter& iter) {
-    auto listIter = iter->second;
-    list_.splice(list_.begin(), list_, listIter);
+    list_.splice(list_.begin(), list_, iter->second);
   }
 
 private:
