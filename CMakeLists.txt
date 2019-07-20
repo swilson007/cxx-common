@@ -35,19 +35,14 @@ list(APPEND StandardCxxDefines) # TODO
 # OS Specifics
 if (MSVC)
     # TODO: Try this. Test this. Fix this
-
     list(APPEND StandardCxxDefines
-      -DSW_OS=WINDOWS -DSW_WINDOWS=1 -DNOMINMAX)
+      /DSW_OS=WINDOWS /DSW_WINDOWS=1 /DNOMINMAX)
 
     set(CMAKE_CXX_FLAGS_RELEASE "/MP /O2 /DSW_RELEASE=1")
     set(CMAKE_CXX_FLAGS_DEBUG "/MP /DSW_DEBUG=1")
 
-    # Force to always compile with W1
-    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-        string(REGEX REPLACE "/W[0-4]" "/W1" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
-    endif()
+    list(APPEND StandardCxxWarnings /W4 /WX)
+    list(APPEND StandardCxxFlags /DNOMINMAX)
 
 elseif (MACOSX)
     list(APPEND StandardCxxDefines

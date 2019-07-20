@@ -6,7 +6,7 @@ script:
     - mkdir -p build/win
     - cd build/win
     - cmake ../.. -DCMAKE_BUILD_TYPE=Release
-    - make
+    - cmake --build .
 
 notifications:
     email: false
