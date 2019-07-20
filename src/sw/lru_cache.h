@@ -126,7 +126,6 @@ class LruCache {
   using ListIter = typename ListType::iterator;
   using MapType = SysHashMap<Key, ListIter>;
   using ConstListIter = typename ListType::const_iterator;
-  using ListReverseIter = typename ListType::reverse_iterator;
   using Map = SysHashMap<Key, ListIter>;
   using MapIter = typename Map::iterator;
   using ConstMapIter = typename Map::const_iterator;
@@ -361,7 +360,6 @@ private:
   static const KeyType& getKey(const ConstListIter& listIter) { return (*listIter).first; }
   static const T& getValue(const ConstListIter& listIter) { return (*listIter).second; }
   static T& getValue(const ListIter& listIter) { return (*listIter).second; }
-  static const KeyType& getKey(const ListReverseIter& listIter) { return (*listIter).first; }
   static const KeyType& getKey(const ConstMapIter& mapIter) { return mapIter->first; }
   static T& getValue(const ConstMapIter& mapIter) { return getValue(mapIter->second); }
   static T& getValue(const MapIter& mapIter) { return getValue(mapIter->second); }
@@ -372,21 +370,14 @@ private:
 
   ////////////////////////////////////////////////////////////////////////////////
   void doPurge() {
-    // Check the size so we can avoid creating any iterators for the nothing to purge case
-    if (size() <= maxSize_)
-      return;
-    
-    // Start at the back and delete things towards the front until we're within our
-    // desired size using list's reverse iterator
-    auto listIter = list_.rbegin();
-    do {
+    // Delete the last (aka oldest) item till our size is ok
+    while (size() > maxSize_) {
+      auto listIter = --list_.end();
       auto mapIter = map_.find(LruCache::getKey(listIter));
       SW_ASSERT(mapIter != map_.end());
       map_.erase(mapIter);
-
-      // Remove the list entry, doing the reverse-iterator junk
-      listIter = std::make_reverse_iterator(list_.erase(std::next(listIter).base()));
-    } while (size() > maxSize_);
+      list_.erase(listIter);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -405,7 +396,6 @@ private:
     if (cache.empty())
       return;
 
-    // SCW Note: iterators aren't fully compliant, so can't use reverse iterator
     auto iter = cache.cendOrdered();
     do {
       --iter;
