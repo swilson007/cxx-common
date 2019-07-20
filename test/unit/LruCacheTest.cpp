@@ -198,9 +198,9 @@ TEST(LruCacheTest, verifyMoveCopyTypes) {
     ASSERT_EQ(0, lru[5].ix);
 
     {
-    auto iter = lru.find(4);
-    ASSERT_TRUE(iter != lru.end());
-    ASSERT_EQ(4, (*iter).ix);
+      auto iter = lru.find(4);
+      ASSERT_TRUE(iter != lru.end());
+      ASSERT_EQ(4, (*iter).ix);
     }
 
     {
