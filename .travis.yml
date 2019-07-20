@@ -9,7 +9,7 @@ script:
     - mkdir -p build/macos
     - cd build/macos
     - cmake ../.. -DCMAKE_BUILD_TYPE=Release
-    - make
+    - cmake --build .
 
 notifications:
     email: false
