@@ -21,8 +21,8 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-#include <string>
 #include <list>
+#include <string>
 
 namespace sw {
 
@@ -102,4 +102,105 @@ TEST(LruCacheTest, orderedIter) {
   ASSERT_EQ(lru.endOrdered(), iter);
 }
 
-}  // namespace sw
+TEST(LruCacheTest, manualPurge) {
+  auto lru = LruCache<int, std::string, false>(2);
+  lru.put(4, "4");
+  lru.put(3, "3");
+  lru.put(2, "2");
+  lru.put(1, "1");
+  ASSERT_EQ(4, lru.size());
+  lru.purge();
+  ASSERT_EQ(2, lru.size());
+  auto iter = lru.beginOrdered();
+  ASSERT_EQ("1", *iter++);
+  ASSERT_EQ("2", *iter++);
+  ASSERT_EQ(lru.endOrdered(), iter);
+}
+
+TEST(LruCacheTest, autoPurge) {
+  {
+    auto lru = LruCache<int, std::string, true>(2);
+    lru.put(4, "4");
+    lru.put(3, "3");
+    lru.put(2, "2");
+    ASSERT_EQ(2, lru.size());
+    lru.put(1, "1");
+    ASSERT_EQ(2, lru.size());
+    auto iter = lru.beginOrdered();
+    ASSERT_EQ("1", *iter++);
+    ASSERT_EQ("2", *iter++);
+    ASSERT_EQ(lru.endOrdered(), iter);
+  }
+
+  {
+    auto lru = LruCache<int, std::string, true>(2);
+    lru[4] = "4";
+    lru[3] = "3";
+    lru[2] = "2";
+    ASSERT_EQ(2, lru.size());
+    lru[1] = "1";
+    ASSERT_EQ(2, lru.size());
+    auto iter = lru.beginOrdered();
+    ASSERT_EQ("1", *iter++);
+    ASSERT_EQ("2", *iter++);
+    ASSERT_EQ(lru.endOrdered(), iter);
+  }
+}
+
+struct MoveOnly {
+  ~MoveOnly() = default;
+  //  ~MoveOnly() { std::cout << "~MopyOnly: ix=" << ix << ", << this=" << this << std::endl; }
+  MoveOnly(int i = 0) : ix(i) {}
+  MoveOnly(const MoveOnly&) = delete;
+  MoveOnly& operator=(const MoveOnly&) = delete;
+
+  MoveOnly(MoveOnly&& that) {
+    ix = that.ix;
+    that.ix = 0;
+  }
+  MoveOnly& operator=(MoveOnly&& that) {
+    SW_ASSERT(this != &that);
+    ix = that.ix;
+    that.ix = 0;
+    return *this;
+  }
+
+  int ix;
+};
+
+struct CopyOnly {
+  ~CopyOnly() = default;
+  //  ~CopyOnly() { std::cout << "~CopyOnly: ix=" << ix << ", << this=" << this << std::endl; }
+  CopyOnly(int i = 0) : ix(i) {}
+  CopyOnly(const CopyOnly&) = default;
+  CopyOnly& operator=(const CopyOnly&) = default;
+  CopyOnly(CopyOnly&&) = delete;
+  CopyOnly& operator=(CopyOnly&&) = delete;
+  int ix = 0;
+};
+
+TEST(LruCacheTest, verifyMoveCopy) {
+  {
+    auto lru = LruCache<int, CopyOnly, false>(2);
+    CopyOnly co{5};
+    lru.put(5, co);
+  }
+
+  {
+    auto lru = LruCache<int, MoveOnly, false>(2);
+    lru.put(4, MoveOnly{4});
+    MoveOnly mo{5};
+    lru.put(5, std::move(mo));
+    ASSERT_EQ(5, lru[5].ix);
+    auto y = std::move(lru[5]);
+    ASSERT_TRUE(lru.contains(5));
+    ASSERT_EQ(5, y.ix);
+    ASSERT_EQ(0, lru[5].ix);
+
+    auto iter = lru.find(4);
+    ASSERT_TRUE(iter != lru.end());
+    ASSERT_EQ(4, (*iter).ix);
+  }
+}
+
+};  // namespace sw

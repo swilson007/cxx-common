@@ -75,13 +75,21 @@ using SysHashMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 ///    if (iter != cache.end())
 ///        std::cout << *iter << std::endl;
 ///
-/// Basically just writing this for fun... haven't done one before.
+/// Ordered vs Unordered iterators. Why have both? The primary purpose for the unordered
+/// version is to support `find()` and `erase()`. The unordered keeps a direct pointer
+/// into the hashmap, while the ordered does not. It would be possible to just have the
+/// ordered version, but accessing the hashmap value from it would then require an extra
+/// key lookup. My anticipation for using/needing the ordered version is low, like probably
+/// just for debugging, thus I'm keeping the unordered as the primary iterator.
+///
+/// SCW: Basically just writing this for fun... haven't done one before.
 ////////////////////////////////////////////////////////////////////////////////
 template <typename Key, typename T, bool kAutoPurge = true>
 class LruCache {
   using KeyValuePair = std::pair<Key, T>;
   using List = std::list<KeyValuePair>;
   using ListIter = typename List::iterator;
+  using ListReverseIter = typename List::reverse_iterator;
   using Map = SysHashMap<Key, ListIter>;
   using MapIter = typename Map::iterator;
   using ConstMapIter = typename Map::const_iterator;
@@ -89,10 +97,12 @@ class LruCache {
 public:
   class UnorderedIterator;
   class OrderedIterator;
+  using iterator = UnorderedIterator;
+  using Iterator = UnorderedIterator;
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates the cache and sets the maximum size before items get purged.
-  LruCache(sizex maxSize = 10) : maxSize_(maxSize) {}
+  LruCache(sizex maxSize = 10) : maxSize_(maxSize < 1 ? 1 : maxSize) {}
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Return the number of items in the map
@@ -119,6 +129,26 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// Purge any entries such that the cache will be within it's max-size. Not necessary
+  /// when auto-purge is enabled
+  void purge() {
+    doPurge();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Clear the cache completely
+  void clear() {
+    list_.clear();
+    map_.clear();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Does the cache contain an entry for the given key
+  bool contains(const Key& key) const {
+    return map_.find(key) != map_.end();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
   /// Remove a cached value
   sizex erase(const Key& key) {
     auto iter = map_.find(key);
@@ -133,6 +163,20 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// Remove a cached value using an iterator
+  sizex erase(const iterator& iter) {
+    if (iter == end()) {
+      return 0;
+    }
+
+    auto mapIter = iter.iter_;
+    auto listIter = mapIter->second;
+    list_.erase(listIter);
+    map_.erase(mapIter);
+    return 1;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
   /// Extract the cached value for the given key. If the value isn't in the cache, a
   /// default constructed value will be created, placed in the cache, and returned.
   T& operator[](const Key& key) {
@@ -140,9 +184,10 @@ public:
     if (iter == map_.end()) {
       // No item. We needs to create a default value in that case
       // First insert a default value to the front of the list, then add it to the map
-      list_.push_front(std::make_pair(key, T()));
+      list_.push_front(std::make_pair(key, T{}));
       auto listIter = list_.begin();
       map_.insert(std::make_pair(key, listIter));
+      doAutoPurge();
       return getValue(listIter);
     }
 
@@ -159,6 +204,7 @@ public:
       // New item
       list_.push_front(std::make_pair(key, value));
       map_.insert(std::make_pair(key, list_.begin()));
+      doAutoPurge();
     } else {
       // Item already exists. Update the mapped value and push it to the front
       getValue(iter) = value;
@@ -174,6 +220,7 @@ public:
       // New item
       list_.push_front(std::make_pair(key, std::move(value)));
       map_.insert(std::make_pair(key, list_.begin()));
+      doAutoPurge();
     } else {
       // Item already exists. Update the mapped value and push it to the front
       getValue(iter) = std::move(value);
@@ -199,7 +246,7 @@ public:
   /// Find the cache element with the specified key. If it doesn't exist, endUnordered() is
   /// returned. If it does exist, it will be refreshed to the front of the cache, and
   /// and UnorderedIterator to it is returned.
-  UnorderedIterator find(const Key& key) {
+  iterator find(const Key& key) {
     MapIter iter = map_.find(key);
     if (iter != map_.end()) {
       onValueUsed(iter);
@@ -209,8 +256,8 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  UnorderedIterator begin() noexcept { return UnorderedIterator(map_.begin()); }
-  UnorderedIterator end() noexcept { return UnorderedIterator(map_.end()); }
+  iterator begin() noexcept { return UnorderedIterator(map_.begin()); }
+  iterator end() noexcept { return UnorderedIterator(map_.end()); }
 
   /// Ordered iteration. I suspect this is primarily for debugging, so it's not the
   /// primary begin/end. ie. you'll have to use a full for loop. Also, the ordered
@@ -316,6 +363,7 @@ public:
 
 private:
   static const Key& getKey(const ListIter& listIter) { return (*listIter).first; }
+  static const Key& getKey(const ListReverseIter& listIter) { return (*listIter).first; }
   static T& getValue(const ListIter& listIter) { return (*listIter).second; }
   static const Key& getKey(const MapIter& mapIter) { return mapIter->first; }
   static T& getValue(const MapIter& mapIter) { return getValue(mapIter->second); }
@@ -327,6 +375,21 @@ private:
 
   ////////////////////////////////////////////////////////////////////////////////
   void doPurge() {
+    // Check the size so we can avoid creating any iterators for the nothing to purge case
+    if (size() <= maxSize_)
+      return;
+
+    // Start at the back and delete things towards the front until we're within our
+    // desired size. Using a reverse iterator
+    auto listIter = list_.rbegin();
+    do {
+      auto mapIter = map_.find(LruCache::getKey(listIter));
+      SW_ASSERT(mapIter != map_.end());
+      map_.erase(mapIter);
+
+      // Remove the list entry, doing the reverse-iterator junk
+      listIter = std::make_reverse_iterator(list_.erase(std::next(listIter).base()));
+    } while (size() > maxSize_);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
