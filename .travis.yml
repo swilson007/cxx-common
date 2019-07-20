@@ -1,13 +1,10 @@
 language: cpp
 
-os: osx
-
-compiler:
-    - clang
+os: windows
 
 script: 
-    - mkdir -p build/macos
-    - cd build/macos
+    - mkdir -p build/win
+    - cd build/win
     - cmake ../.. -DCMAKE_BUILD_TYPE=Release
     - make
 
