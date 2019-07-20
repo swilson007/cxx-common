@@ -105,7 +105,7 @@ class ConstOrderedIterator;
 /// # Iterators
 /// The iterators work for basic needs but they aren't fully compliant with `std`.
 /// The appropriate iterator traits and types aren't set, std::make_reverse_iterator
-/// isn't going to work, and non-consts aren't auto-convertable to consts.
+/// isn't going to work.
 /// It's all TODO.
 ///
 /// Ordered vs Unordered iterators. Why have both? The primary purpose for the unordered
@@ -174,12 +174,21 @@ public:
   sizex size() const noexcept { return map_.size(); }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Return the number of items in the map
+  /// Return the number maximum number of items allowed in the cache. If kAutoPurge is
+  /// `false`, then this is a soft-limit. It can be exceeded, but a `purge()` call will
+  /// remove items to achieve this size.
   sizex maxSize() const noexcept { return maxSize_; }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Return the number of items in the map
-  void setMaxSize(sizex maxSizeValue) const noexcept { maxSize_ = std::max(maxSizeValue, 1_z); }
+  /// Sets the maximum size of the map. Will purge items when `kAutoPurge` is
+  /// true and the maximum size is reduced.
+  void setMaxSize(sizex maxSizeValue) const noexcept {
+    auto newMaxSize = std::max(maxSizeValue, 1_z);
+    bool isSmaller = newMaxSize < maxSize_;
+    maxSize_ = newMaxSize;
+    if (isSmaller)
+      doAutoPurge();
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Is the map empty?
@@ -233,30 +242,14 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Remove a cached value using an iterator
-  sizex erase(const Iterator& iter) {
-    if (iter == end()) {
-      return 0;
-    }
+  Iterator erase(const ConstIterator& iter) {
+    if (iter == cend())
+      return end();
 
     auto mapIter = iter.iter_;
     auto listIter = mapIter->second;
     list_.erase(listIter);
-    map_.erase(mapIter);
-    return 1;
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// Remove a cached value using an iterator
-  sizex erase(const ConstIterator& iter) {
-    if (iter == cend()) {
-      return 0;
-    }
-
-    auto mapIter = iter.iter_;
-    auto listIter = mapIter->second;
-    list_.erase(listIter);
-    map_.erase(mapIter);
-    return 1;
+    return Iterator(map_.erase(mapIter));
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -342,13 +335,10 @@ public:
   /// Find the cache element with the specified key. If it doesn't exist, cend() is
   /// returned. If it does exist, it will be refreshed to the front of the cache, and
   /// and a valid ConstIterator to it is returned.
+  /// Note that we can't have a `find() const` since find needs to refresh it's cached
+  /// value. Thus to get one with a const iterator there is `cfind`
   ConstIterator cfind(const KeyType& key) {
-    ConstMapIter iter = map_.find(key);
-    if (iter != map_.end()) {
-      onValueUsed(iter);
-    }
-
-    return ConstIterator(iter);
+    return find(key);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -367,7 +357,7 @@ public:
   ConstOrderedIterator cendOrdered() const noexcept { return ConstOrderedIterator(list_.cend()); }
 
 private:
-  // Helpers
+  // Clarity Helpers
   static const KeyType& getKey(const ConstListIter& listIter) { return (*listIter).first; }
   static const T& getValue(const ConstListIter& listIter) { return (*listIter).second; }
   static T& getValue(const ListIter& listIter) { return (*listIter).second; }
@@ -377,6 +367,7 @@ private:
   static T& getValue(const MapIter& mapIter) { return getValue(mapIter->second); }
 
   ////////////////////////////////////////////////////////////////////////////////
+  /// Call this when a cached value is used, thus pushing it to the front of the list.
   void onValueUsed(const ConstMapIter& iter) { list_.splice(list_.begin(), list_, iter->second); }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -384,9 +375,9 @@ private:
     // Check the size so we can avoid creating any iterators for the nothing to purge case
     if (size() <= maxSize_)
       return;
-
+    
     // Start at the back and delete things towards the front until we're within our
-    // desired size. Using a reverse iterator
+    // desired size using list's reverse iterator
     auto listIter = list_.rbegin();
     do {
       auto mapIter = map_.find(LruCache::getKey(listIter));
@@ -490,6 +481,7 @@ private:
   explicit UnorderedIterator(MapIter iter) noexcept : iter_(iter) {}
   MapIter iter_;
   friend CacheType;
+  friend class ConstUnorderedIterator<CacheType>;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -502,6 +494,9 @@ public:
   using Key = typename CacheType::KeyType;
   using Value = typename CacheType::ValueType;
   using ConstMapIter = typename CacheType::ConstMapIter;
+
+  // Allow direct conversion from non-const iterator
+  ConstUnorderedIterator(UnorderedIterator<CacheType> iter) : iter_(iter.iter_) {}
 
   ConstUnorderedIterator& operator++() {
     ++iter_;
@@ -591,6 +586,7 @@ private:
   ListIter iter_;
 
   friend CacheType;
+  friend class ConstOrderedIterator<CacheType>;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -601,6 +597,9 @@ public:
   using Key = typename CacheType::KeyType;
   using Value = typename CacheType::ValueType;
   using ConstListIter = typename CacheType::ConstListIter;
+
+  // Allow direct conversion from non-const iterator
+  ConstOrderedIterator(OrderedIterator<CacheType> iter) : iter_(iter.iter_) {}
 
   ConstOrderedIterator& operator++() {
     ++iter_;

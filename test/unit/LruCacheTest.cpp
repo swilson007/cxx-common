@@ -24,6 +24,8 @@
 #include <list>
 #include <string>
 
+// As usual... minimal testing here... real testing TODO
+
 namespace sw {
 
 TEST(LruCacheTest, lruBasic) {
@@ -54,7 +56,7 @@ TEST(LruCacheTest, lruPutAndGet) {
   ASSERT_EQ("33", str);
 }
 
-TEST(LruCacheTest, lruDelete) {
+TEST(LruCacheTest, keyErase) {
   LruCache<int, std::string> lru;
   lru[1] = "1";
   lru[2] = "2";
@@ -65,6 +67,45 @@ TEST(LruCacheTest, lruDelete) {
   ASSERT_EQ("1", lru[1]);
   ASSERT_EQ("3", lru[3]);
   ASSERT_EQ("", lru[2]);
+}
+
+TEST(LruCacheTest, iterErase) {
+  LruCache<int, std::string> lru(10);
+  lru[1] = "1";
+  lru[2] = "2";
+  lru[3] = "3";
+  lru[4] = "4";
+  ASSERT_EQ(4, lru.size());
+
+  {
+    auto iter = lru.find(1);
+    ASSERT_NE(lru.end(), iter);
+    lru.erase(iter);
+    ASSERT_EQ(3, lru.size());
+    iter = lru.find(1);
+    ASSERT_EQ(lru.end(), iter);
+  }
+
+  // Const version
+  {
+    auto iter = lru.cfind(2);
+    ASSERT_NE(lru.cend(), iter);
+    lru.erase(iter);
+    ASSERT_EQ(2, lru.size());
+    iter = lru.cfind(2);
+    ASSERT_EQ(lru.cend(), iter);
+  }
+
+  // And iterator erase
+  {
+    lru[1] = "1";
+    lru[2] = "2";
+    ASSERT_EQ(4, lru.size());
+    for (auto iter = lru.cbegin(); iter != lru.cend();) {
+      iter = lru.erase(iter);
+    }
+    ASSERT_TRUE(lru.empty());
+  }
 }
 
 TEST(LruCacheTest, lruFind) {
