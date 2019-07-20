@@ -44,7 +44,9 @@
 #  if defined(WIN32)
 #    define SW_WINDOWS 1
 #    define SW_OS WINDOWS
-#    define NOMINMAX
+#    if !defined(NOMINMAX)
+#      define NOMINMAX
+#    endif
 // Windows version?
 #  elif defined(__APPLE__)
 #    define SW_MACOS 1

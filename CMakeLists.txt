@@ -36,7 +36,7 @@ list(APPEND StandardCxxDefines) # TODO
 if (MSVC)
     # TODO: Try this. Test this. Fix this
     list(APPEND StandardCxxDefines
-      /DSW_OS=WINDOWS /DSW_WINDOWS=1 /DNOMINMAX)
+      -DSW_OS=WINDOWS -DSW_WINDOWS=1 -DNOMINMAX)
 
     set(CMAKE_CXX_FLAGS_RELEASE "/MP /O2 /DSW_RELEASE=1")
     set(CMAKE_CXX_FLAGS_DEBUG "/MP /DSW_DEBUG=1")
