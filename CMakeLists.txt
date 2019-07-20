@@ -11,10 +11,13 @@ endif()
 # Determine OS/Release/Debug build dir name
 if (MSVC)
     set(OS_BUILD_DIR "win64_v141")    # TODO
+    message("Found MSVC")
 elseif (MACOSX)
     set(OS_BUILD_DIR "macosx64")
+    message("Found MacOS")
 elseif (LINUX)
     set(OS_BUILD_DIR "linux64")
+    message("Found Linux64")
 endif()
 
 # Project level variables here
@@ -58,7 +61,7 @@ elseif (MACOSX)
     list(APPEND StandardCxxWarnings
         -pedantic
         -Werror -Wall -Wextra -Wbind-to-temporary-copy -Wswitch -Warray-bounds -Wconversion -Wformat
-        -Wimplicit -Wmove -Wpedantic -Wshadow
+        -Wimplicit -Wmove -Wpedantic -Wshadow -Wmissing-braces
         -Wno-unused-parameter -Wno-unused-private-field -Wno-unused -Wno-mismatched-tags -Wno-format-security)
     list(APPEND StandardCxxFlags
         -funsigned-char)

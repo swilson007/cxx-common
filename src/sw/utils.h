@@ -67,7 +67,7 @@ template <typename SystemTraits>
 const std::string UtilsStorageType<SystemTraits>::kErrorString = "<error>";
 
 template <typename SystemTraits>
-const std::array<const char*, 256> UtilsStorageType<SystemTraits>::kHexLookup;
+constexpr std::array<const char*, 256> UtilsStorageType<SystemTraits>::kHexLookup;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Convert a byte to it's hex string. Quickly.

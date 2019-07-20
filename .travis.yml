@@ -1,0 +1,15 @@
+language: cpp
+
+os: osx
+
+compiler:
+    - clang
+
+script: 
+    - mkdir -p build/macos
+    - cd build/macos
+    - cmake ../.. -DCMAKE_BUILD_TYPE=Release
+    - make
+
+notifications:
+    email: false

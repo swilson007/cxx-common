@@ -23,6 +23,7 @@
 #include "types.h"
 
 #include <new>
+#include <cstring>
 #include <type_traits>
 
 namespace sw {

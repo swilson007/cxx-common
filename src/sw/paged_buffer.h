@@ -22,6 +22,8 @@
 #include "types.h"
 
 #include <vector>
+#include <memory>
+#include <cstring>
 
 namespace sw {
 

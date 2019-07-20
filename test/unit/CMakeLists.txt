@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME} ${AllSources})
 target_compile_features(${PROJECT_NAME} PUBLIC ${StandardCxxCompilerFeatures})
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${StandardCxxDefines})
 target_compile_options(${PROJECT_NAME} PUBLIC ${StandardCxxWarnings})
+message("unit test: Warnings=${StandardCxxWarnings}")
 target_compile_options(${PROJECT_NAME} PUBLIC ${StandardCxxFlags})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ScwSrcDir})
