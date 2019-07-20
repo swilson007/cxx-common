@@ -179,7 +179,7 @@ struct CopyOnly {
   int ix = 0;
 };
 
-TEST(LruCacheTest, verifyMoveCopy) {
+TEST(LruCacheTest, verifyMoveCopyTypes) {
   {
     auto lru = LruCache<int, CopyOnly, false>(2);
     CopyOnly co{5};
@@ -197,10 +197,53 @@ TEST(LruCacheTest, verifyMoveCopy) {
     ASSERT_EQ(5, y.ix);
     ASSERT_EQ(0, lru[5].ix);
 
+    {
     auto iter = lru.find(4);
     ASSERT_TRUE(iter != lru.end());
     ASSERT_EQ(4, (*iter).ix);
+    }
+
+    {
+      auto iter = lru.cfind(4);
+      ASSERT_TRUE(iter != lru.cend());
+      ASSERT_EQ(4, (*iter).ix);
+    }
   }
+}
+
+TEST(LruCacheTest, moveCache) {
+  auto lru = LruCache<int, std::string, true>(2);
+  lru.put(2, "2");
+  lru.put(1, "1");
+  ASSERT_EQ(2, lru.size());
+
+  auto lru2 = std::move(lru);
+  ASSERT_EQ(0, lru.size());
+  ASSERT_EQ(2, lru2.size());
+  auto iter = lru2.beginOrdered();
+  ASSERT_EQ("1", *iter++);
+  ASSERT_EQ("2", *iter++);
+  ASSERT_EQ(lru2.endOrdered(), iter);
+}
+
+TEST(LruCacheTest, copyCache) {
+  auto lru = LruCache<int, std::string, true>(2);
+  lru.put(2, "2");
+  lru.put(1, "1");
+  ASSERT_EQ(2, lru.size());
+
+  // Copy it
+  auto lru2 = lru;
+
+  // Verify
+  ASSERT_EQ(2, lru.size());
+  ASSERT_EQ(2, lru2.size());
+  auto iter = lru.beginOrdered();
+  auto iter2 = lru2.beginOrdered();
+  ASSERT_EQ(*iter++, *iter2++);
+  ASSERT_EQ(*iter++, *iter2++);
+  ASSERT_EQ(lru.endOrdered(), iter);
+  ASSERT_EQ(lru2.endOrdered(), iter2);
 }
 
 };  // namespace sw

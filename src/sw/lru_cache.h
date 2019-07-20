@@ -19,6 +19,7 @@
 #pragma once
 
 #include <sw/assert.h>
+#include <sw/fixed_width_int_literals.h>
 #include <sw/types.h>
 
 #if SW_USE_ROBIN_HASH_MAP
@@ -28,10 +29,13 @@
 #  include <unordered_map>
 #endif
 
+#include <algorithm>
 #include <list>
 #include <memory>
 
 namespace sw {
+
+using namespace sw::intliterals;
 
 #if SW_USE_ROBIN_HASH_MAP
 /// Using a much faster hash-map implementation then std::unordered map. But the downside
@@ -48,16 +52,23 @@ using SysHashMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 ////////////////////////////////////////////////////////////////////////////////
 /// This will implement an LRU-cache.
 ///
-/// The structure of the cache will be a doublely-linked list used in conjunction with hashmap.
+/// The structure of the cache will be a doubly-linked list used in conjunction with hashmap.
 /// Cache lookup will thus be O(1) via the hashmap, which will point to a node in the list.
 /// The list nodes will maintain the ordering. When a cached item is pinged, it will move to
 /// the front of the list (also O(1)). Items at the end of the list can get speculatively
 /// purged.
 ///
-/// To add something to the cache, use put `cache.put(key, value)`. I chose
-/// *not* to use the name `insert()` in similar vein to std::unordered_map because
-/// the behavior is a little different. `put` will update an existing value while `insert`
-/// won't.
+/// The cache can be configured to auto-purge or not via a template parameter. The parameter
+/// approach was chosen rather than a constructor argument simply for performance. ie. the
+/// optimizer should remove any checks to auto-purge when it's is disabled.
+///
+/// To add something to the cache, use use `operator[]` with similar semantics as
+/// std::unordered_map:
+///     cache[1] = "foo";
+/// There is also `put(key, value)`, and for this I chose *not* to name
+/// the method `insert()` like std::unordered_map because the behavior is a little different.
+/// ie., `put` will update an existing value while `insert` will not:
+///     cache.put(1, "foo");
 ///
 /// There's a number of ways to extract items from the cache.
 /// * Use `operator[]`. This behaves just like std::unordered_map in that it will access the
@@ -75,12 +86,17 @@ using SysHashMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 ///    if (iter != cache.end())
 ///        std::cout << *iter << std::endl;
 ///
+/// # Iterators
+/// The iterators work as for what we need, but they aren't fully compliant with `std`.
+/// The appropriate iterator traits and types aren't set. std::make_reverse_iterator
+/// isn't going to work therefore.
+///
 /// Ordered vs Unordered iterators. Why have both? The primary purpose for the unordered
 /// version is to support `find()` and `erase()`. The unordered keeps a direct pointer
 /// into the hashmap, while the ordered does not. It would be possible to just have the
 /// ordered version, but accessing the hashmap value from it would then require an extra
 /// key lookup. My anticipation for using/needing the ordered version is low, like probably
-/// just for debugging, thus I'm keeping the unordered as the primary iterator.
+/// just for debugging, thus I'm keeping both, and the unordered as the primary iterator.
 ///
 /// SCW: Basically just writing this for fun... haven't done one before.
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +105,7 @@ class LruCache {
   using KeyValuePair = std::pair<Key, T>;
   using List = std::list<KeyValuePair>;
   using ListIter = typename List::iterator;
+  using ConstListIter = typename List::const_iterator;
   using ListReverseIter = typename List::reverse_iterator;
   using Map = SysHashMap<Key, ListIter>;
   using MapIter = typename Map::iterator;
@@ -96,17 +113,49 @@ class LruCache {
 
 public:
   class UnorderedIterator;
+  class ConstUnorderedIterator;
   class OrderedIterator;
-  using iterator = UnorderedIterator;
+  class ConstOrderedIterator;
   using Iterator = UnorderedIterator;
+  using ConstIterator = ConstUnorderedIterator;
+
+  // Cached values will be destructed normally
+  ~LruCache() = default;
+
+  // Create a copy of the given cache
+  LruCache(const LruCache& that) : maxSize_(that.maxSize_) { doEmptyCopyFrom(that); }
+
+  // Copies the given cache to this cache. All prior entires in this cache are discarded
+  LruCache& operator=(const LruCache& that) {
+    if (this != &that) {
+      clear();
+      maxSize_ = that.maxSize_;
+      doEmptyCopyFrom(that);
+    }
+    return *this;
+  }
+
+  // Moves the given cache to this
+  LruCache(LruCache&&) = default;
+
+  // Moves the given cache to this
+  LruCache& operator=(LruCache&&) = default;
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates the cache and sets the maximum size before items get purged.
-  LruCache(sizex maxSize = 10) : maxSize_(maxSize < 1 ? 1 : maxSize) {}
+  explicit LruCache(sizex maxSizeValue = 10) : maxSize_(std::max(maxSizeValue, 1_z)) {}
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Return the number of items in the map
   sizex size() const noexcept { return map_.size(); }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Return the number of items in the map
+  sizex maxSize() const noexcept { return maxSize_; }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Return the number of items in the map
+  void setMaxSize(sizex maxSizeValue) const noexcept { maxSize_ = std::max(maxSizeValue, 1_z); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Is the map empty?
@@ -131,9 +180,7 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Purge any entries such that the cache will be within it's max-size. Not necessary
   /// when auto-purge is enabled
-  void purge() {
-    doPurge();
-  }
+  void purge() { doPurge(); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Clear the cache completely
@@ -144,9 +191,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Does the cache contain an entry for the given key
-  bool contains(const Key& key) const {
-    return map_.find(key) != map_.end();
-  }
+  bool contains(const Key& key) const { return map_.find(key) != map_.end(); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Remove a cached value
@@ -164,8 +209,22 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Remove a cached value using an iterator
-  sizex erase(const iterator& iter) {
+  sizex erase(const Iterator& iter) {
     if (iter == end()) {
+      return 0;
+    }
+
+    auto mapIter = iter.iter_;
+    auto listIter = mapIter->second;
+    list_.erase(listIter);
+    map_.erase(mapIter);
+    return 1;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Remove a cached value using an iterator
+  sizex erase(const ConstIterator& iter) {
+    if (iter == cend()) {
       return 0;
     }
 
@@ -243,32 +302,50 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Find the cache element with the specified key. If it doesn't exist, endUnordered() is
+  /// Find the cache element with the specified key. If it doesn't exist, end() is
   /// returned. If it does exist, it will be refreshed to the front of the cache, and
-  /// and UnorderedIterator to it is returned.
-  iterator find(const Key& key) {
+  /// and a valid Iterator to it is returned.
+  Iterator find(const Key& key) {
     MapIter iter = map_.find(key);
     if (iter != map_.end()) {
       onValueUsed(iter);
     }
 
-    return UnorderedIterator(std::move(iter));
+    return Iterator(iter);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  iterator begin() noexcept { return UnorderedIterator(map_.begin()); }
-  iterator end() noexcept { return UnorderedIterator(map_.end()); }
+  /// Find the cache element with the specified key. If it doesn't exist, cend() is
+  /// returned. If it does exist, it will be refreshed to the front of the cache, and
+  /// and a valid ConstIterator to it is returned.
+  ConstIterator cfind(const Key& key) {
+    ConstMapIter iter = map_.find(key);
+    if (iter != map_.end()) {
+      onValueUsed(iter);
+    }
 
-  /// Ordered iteration. I suspect this is primarily for debugging, so it's not the
-  /// primary begin/end. ie. you'll have to use a full for loop. Also, the ordered
-  /// iterator only contains the cache'd value, and not the key.
+    return ConstIterator(iter);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  Iterator begin() noexcept { return Iterator(map_.begin()); }
+  Iterator end() noexcept { return Iterator(map_.end()); }
+  ConstIterator cbegin() const noexcept { return ConstIterator(map_.begin()); }
+  ConstIterator cend() const noexcept { return ConstIterator(map_.end()); }
+
+  /// Ordered iteration. I suspect this is primarily for debugging/testing, so it's
+  /// not the primary begin/end. ie. you'll have to use a full for loop.
   OrderedIterator beginOrdered() noexcept { return OrderedIterator(list_.begin()); }
   OrderedIterator endOrdered() noexcept { return OrderedIterator(list_.end()); }
-
-  // TODO: purge functions
+  ConstOrderedIterator beginOrdered() const noexcept { return ConstOrderedIterator(list_.cbegin()); }
+  ConstOrderedIterator endOrdered() const noexcept { return ConstOrderedIterator(list_.cend()); }
+  ConstOrderedIterator cbeginOrdered() const noexcept { return ConstOrderedIterator(list_.cbegin()); }
+  ConstOrderedIterator cendOrdered() const noexcept { return ConstOrderedIterator(list_.cend()); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Accessing an element using the unordered iterator won't change the LRU ordering
+  /// Certain operations take an UnorderedIterator because it's more efficient for
+  /// those operations than the ordered iterator.
   class UnorderedIterator {
   public:
     UnorderedIterator& operator++() {
@@ -276,7 +353,7 @@ public:
       return *this;
     }
 
-    UnorderedIterator operator++(int) {
+    UnorderedIterator operator++(int) & {  // NOLINT const return
       UnorderedIterator tmp = *this;
       operator++();
       return tmp;
@@ -287,7 +364,7 @@ public:
       return *this;
     }
 
-    UnorderedIterator operator--(int) {
+    UnorderedIterator operator--(int) & {  // NOLINT const return
       UnorderedIterator tmp = *this;
       operator--();
       return tmp;
@@ -296,7 +373,6 @@ public:
     const Key& key() const { return LruCache::getKey(iter_); }
     T& value() { return LruCache::getValue(iter_); }
     const T& value() const { return LruCache::getValue(iter_); }
-
     T& operator*() { return LruCache::getValue(iter_); }
     const T& operator*() const { return LruCache::getValue(iter_); }
 
@@ -308,9 +384,54 @@ public:
     }
 
   private:
-    explicit UnorderedIterator(MapIter&& iter) noexcept : iter_(std::move(iter)) {}
+    explicit UnorderedIterator(MapIter iter) noexcept : iter_(iter) {}
     MapIter iter_;
 
+    friend class LruCache;
+  };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Accessing an element using the unordered iterator won't change the LRU ordering
+  /// Certain operations take an UnorderedIterator because it's more efficient for
+  /// those operations than the ordered iterator.
+  class ConstUnorderedIterator {
+  public:
+    ConstUnorderedIterator& operator++() {
+      ++iter_;
+      return *this;
+    }
+
+    ConstUnorderedIterator operator++(int) & {  // NOLINT const return
+      ConstUnorderedIterator tmp = *this;
+      operator++();
+      return tmp;
+    }
+
+    ConstUnorderedIterator& operator--() {
+      --iter_;
+      return *this;
+    }
+
+    ConstUnorderedIterator operator--(int) & {  // NOLINT const return
+      ConstUnorderedIterator tmp = *this;
+      operator--();
+      return tmp;
+    }
+
+    const Key& key() const { return LruCache::getKey(iter_); }
+    const T& value() const { return LruCache::getValue(iter_); }
+    const T& operator*() const { return LruCache::getValue(iter_); }
+
+    friend bool operator==(const ConstUnorderedIterator& i1, const ConstUnorderedIterator& i2) {
+      return i1.iter_ == i2.iter_;
+    }
+    friend bool operator!=(const ConstUnorderedIterator& i1, const ConstUnorderedIterator& i2) {
+      return i1.iter_ != i2.iter_;
+    }
+
+  private:
+    explicit ConstUnorderedIterator(ConstMapIter iter) noexcept : iter_(iter) {}
+    ConstMapIter iter_;
     friend class LruCache;
   };
 
@@ -323,7 +444,7 @@ public:
       return *this;
     }
 
-    OrderedIterator operator++(int) {
+    OrderedIterator operator++(int) & {  // NOLINT const return
       OrderedIterator tmp = *this;
       operator++();
       return tmp;
@@ -334,7 +455,7 @@ public:
       return *this;
     }
 
-    OrderedIterator operator--(int) {
+    OrderedIterator operator--(int) & {  // NOLINT const return
       OrderedIterator tmp = *this;
       operator--();
       return tmp;
@@ -343,7 +464,6 @@ public:
     const Key& key() const { return LruCache::getKey(iter_); }
     T& value() { return LruCache::getValue(iter_); }
     const T& value() const { return LruCache::getValue(iter_); }
-
     T& operator*() { return LruCache::getValue(iter_); }
     const T& operator*() const { return LruCache::getValue(iter_); }
 
@@ -355,23 +475,68 @@ public:
     }
 
   private:
-    explicit OrderedIterator(ListIter&& iter) noexcept : iter_(std::move(iter)) {}
+    explicit OrderedIterator(ListIter iter) noexcept : iter_(iter) {}
     ListIter iter_;
 
     friend class LruCache;
   };
 
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Accessing an element using the ordered iterator won't change the LRU ordering
+  class ConstOrderedIterator {
+  public:
+    ConstOrderedIterator& operator++() {
+      ++iter_;
+      return *this;
+    }
+
+    ConstOrderedIterator operator++(int) & {  // NOLINT const return
+      ConstOrderedIterator tmp = *this;
+      operator++();
+      return tmp;
+    }
+
+    ConstOrderedIterator& operator--() {
+      --iter_;
+      return *this;
+    }
+
+    ConstOrderedIterator operator--(int) & {  // NOLINT const return
+      ConstOrderedIterator tmp = *this;
+      operator--();
+      return tmp;
+    }
+
+    const Key& key() const { return LruCache::getKey(iter_); }
+    const T& value() const { return LruCache::getValue(iter_); }
+    const T& operator*() const { return LruCache::getValue(iter_); }
+
+    friend bool operator==(const ConstOrderedIterator& i1, const ConstOrderedIterator& i2) {
+      return i1.iter_ == i2.iter_;
+    }
+    friend bool operator!=(const ConstOrderedIterator& i1, const ConstOrderedIterator& i2) {
+      return i1.iter_ != i2.iter_;
+    }
+
+  private:
+    explicit ConstOrderedIterator(ConstListIter iter) noexcept : iter_(iter) {}
+    ConstListIter iter_;
+
+    friend class LruCache;
+  };
+
 private:
-  static const Key& getKey(const ListIter& listIter) { return (*listIter).first; }
-  static const Key& getKey(const ListReverseIter& listIter) { return (*listIter).first; }
+  // Helpers
+  static const Key& getKey(const ConstListIter& listIter) { return (*listIter).first; }
+  static const T& getValue(const ConstListIter& listIter) { return (*listIter).second; }
   static T& getValue(const ListIter& listIter) { return (*listIter).second; }
-  static const Key& getKey(const MapIter& mapIter) { return mapIter->first; }
+  static const Key& getKey(const ListReverseIter& listIter) { return (*listIter).first; }
+  static const Key& getKey(const ConstMapIter& mapIter) { return mapIter->first; }
+  static T& getValue(const ConstMapIter& mapIter) { return getValue(mapIter->second); }
   static T& getValue(const MapIter& mapIter) { return getValue(mapIter->second); }
 
   ////////////////////////////////////////////////////////////////////////////////
-  void onValueUsed(const ConstMapIter& iter) {
-    list_.splice(list_.begin(), list_, iter->second);
-  }
+  void onValueUsed(const ConstMapIter& iter) { list_.splice(list_.begin(), list_, iter->second); }
 
   ////////////////////////////////////////////////////////////////////////////////
   void doPurge() {
@@ -399,6 +564,24 @@ private:
     if (kAutoPurge) {
       doPurge();
     }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Copies the contents of the given cache into this cache, assumes this cache is empty
+  void doEmptyCopyFrom(const LruCache& cache) {
+    SW_ASSERT(empty());
+    if (cache.empty())
+      return;
+
+    // SCW Note: iterators aren't fully compliant, so can't use reverse iterator
+    auto iter = cache.cendOrdered();
+    do {
+      --iter;
+      const auto& key = iter.key();
+      const auto& value = iter.value();
+      list_.push_front(std::make_pair(iter.key(), iter.value()));
+      map_.insert(std::make_pair(iter.key(), list_.begin()));
+    } while (iter != cache.cbeginOrdered());
   }
 
 private:

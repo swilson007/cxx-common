@@ -11,7 +11,7 @@ BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
-ColumnLimit:     100
+ColumnLimit:     110
 CompactNamespaces: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 DerivePointerAlignment: true
