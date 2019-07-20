@@ -5,7 +5,7 @@ os: windows
 script: 
     - mkdir -p build/win
     - cd build/win
-    - cmake ../.. -DCMAKE_BUILD_TYPE=Release
+    - cmake ../.. -DCMAKE_GENERATOR_PLATFORM=x64
     - cmake --build .
 
 notifications:
