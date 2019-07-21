@@ -40,27 +40,27 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creation of the timer starts it
-  HiResTimer() : start_(Clock::now()) {}
+  HiResTimer() noexcept : start_(Clock::now()) {}
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// @return Returns the duration since the timer was started as a floating point in ms
-  double elapsedMsd() const {
+  /// @return Returns the duration since the timer was started as a double in ms
+  double elapsedMsd() const noexcept {
     return elapsedDuration<std::chrono::duration<double>>().count() * 1000.0;
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   // @return Returns the duration since the timer was started
-  std::chrono::microseconds elapsed() const { return elapsedDuration<std::chrono::microseconds>(); }
+  std::chrono::microseconds elapsed() const noexcept { return elapsedDuration<std::chrono::microseconds>(); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @return Returns the duration since the timer was started
-  std::chrono::milliseconds elapsedMs() const {
+  std::chrono::milliseconds elapsedMs() const noexcept {
     return elapsedDuration<std::chrono::milliseconds>();
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// @return Returns the duration since the timer was started as floating point seconds
-  std::chrono::duration<double> elapsedSecs() const {
+  std::chrono::duration<double> elapsedSecs() const noexcept {
     return elapsedDuration<std::chrono::duration<double>>();
   }
 
@@ -68,7 +68,7 @@ public:
   /// Returns the duration, and restarts the timer
   ///
   /// @return Returns the duration since the timer was started
-  std::chrono::microseconds update() {
+  std::chrono::microseconds update() noexcept {
     auto result = elapsed();
     start_ = Clock::now();
     return result;
@@ -78,7 +78,7 @@ public:
   /// Returns the duration, and restarts the timer
   ///
   /// @return Returns the duration since the timer was started
-  std::chrono::milliseconds updateMs() {
+  std::chrono::milliseconds updateMs() noexcept {
     auto result = elapsedMs();
     start_ = Clock::now();
     return result;
@@ -86,19 +86,19 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Restarts the timer
-  void restart() { start_ = Clock::now(); }
+  void restart() noexcept { start_ = Clock::now(); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Chrono helper that converts to floating point seconds.
-  static double toSeconds(std::chrono::milliseconds v) { return v.count() / 1000.0; }
+  static double toSeconds(std::chrono::milliseconds v) noexcept { return v.count() / 1000.0; }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Chrono helper that converts to floating point seconds.
-  static double toSeconds(std::chrono::microseconds v) { return v.count() / 1000000.0; }
+  static double toSeconds(std::chrono::microseconds v) noexcept { return v.count() / 1000000.0; }
 
 public:
   template <typename T>
-  T elapsedDuration() const {
+  T elapsedDuration() const noexcept {
     T result = std::chrono::duration_cast<T>(Clock::now() - start_);
     return result;
   }

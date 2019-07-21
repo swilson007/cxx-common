@@ -142,6 +142,10 @@ public:
   using KeyType = Key;
   using ValueType = T;
 
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Creates the cache and sets the maximum size before items get purged.
+  explicit LruCache(sizex maxSizeValue = 10) : maxSize_(std::max(maxSizeValue, 1_z)) {}
+
   // Cached values will be destructed normally
   ~LruCache() = default;
 
@@ -158,15 +162,11 @@ public:
     return *this;
   }
 
-  // Moves the given cache to this
+  // Moves the given cache to this. Not noexcept because list/map moves aren't noexcept
   LruCache(LruCache&&) = default;
 
-  // Moves the given cache to this
+  // Moves the given cache to this. Not noexcept because list/map moves aren't noexcept
   LruCache& operator=(LruCache&&) = default;
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// Creates the cache and sets the maximum size before items get purged.
-  explicit LruCache(sizex maxSizeValue = 10) : maxSize_(std::max(maxSizeValue, 1_z)) {}
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Return the number of items in the map
@@ -181,7 +181,7 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Sets the maximum size of the map. Will purge items when `kAutoPurge` is
   /// true and the maximum size is reduced.
-  void setMaxSize(sizex maxSizeValue) const noexcept {
+  void setMaxSize(sizex maxSizeValue) noexcept {
     auto newMaxSize = std::max(maxSizeValue, 1_z);
     bool isSmaller = newMaxSize < maxSize_;
     maxSize_ = newMaxSize;
@@ -194,16 +194,14 @@ public:
   bool empty() const noexcept { return map_.empty(); }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Check if the given key is mapped to a value in the cache
-  bool exists(const KeyType& key) const noexcept {
-    auto iter = map_.find(key);
-    return iter != map_.end();
-  }
+  /// Check if the given key is mapped to a value in the cache. Does *not* change
+  /// cache ordering. Use `refresh()` for that case.
+  bool contains(const KeyType& key) const { return map_.find(key) != map_.end(); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Refreshes a cache item if it exists, causing it to move to the front
-  void refresh(const KeyType& key) noexcept {
-    auto iter = map_.find(key);
+  void refresh(const KeyType& key) {
+    const auto iter = map_.find(key);
     if (iter != map_.end()) {
       onValueUsed(iter);
     }
@@ -220,10 +218,6 @@ public:
     list_.clear();
     map_.clear();
   }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// Does the cache contain an entry for the given key
-  bool contains(const KeyType& key) const { return map_.find(key) != map_.end(); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Remove a cached value
@@ -336,9 +330,7 @@ public:
   /// and a valid ConstIterator to it is returned.
   /// Note that we can't have a `find() const` since find needs to refresh it's cached
   /// value. Thus to get one with a const iterator there is `cfind`
-  ConstIterator cfind(const KeyType& key) {
-    return find(key);
-  }
+  ConstIterator cfind(const KeyType& key) { return find(key); }
 
   ////////////////////////////////////////////////////////////////////////////////
   Iterator begin() noexcept { return Iterator(map_.begin()); }
@@ -357,12 +349,12 @@ public:
 
 private:
   // Clarity Helpers
-  static const KeyType& getKey(const ConstListIter& listIter) { return (*listIter).first; }
-  static const T& getValue(const ConstListIter& listIter) { return (*listIter).second; }
-  static T& getValue(const ListIter& listIter) { return (*listIter).second; }
-  static const KeyType& getKey(const ConstMapIter& mapIter) { return mapIter->first; }
-  static T& getValue(const ConstMapIter& mapIter) { return getValue(mapIter->second); }
-  static T& getValue(const MapIter& mapIter) { return getValue(mapIter->second); }
+  static const KeyType& getKey(const ConstListIter& listIter) noexcept { return (*listIter).first; }
+  static const T& getValue(const ConstListIter& listIter) noexcept { return (*listIter).second; }
+  static T& getValue(const ListIter& listIter) noexcept { return (*listIter).second; }
+  static const KeyType& getKey(const ConstMapIter& mapIter) noexcept { return mapIter->first; }
+  static T& getValue(const ConstMapIter& mapIter) noexcept { return getValue(mapIter->second); }
+  static T& getValue(const MapIter& mapIter) noexcept { return getValue(mapIter->second); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Call this when a cached value is used, thus pushing it to the front of the list.
