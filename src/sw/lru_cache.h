@@ -395,12 +395,17 @@ private:
   }
 
 private:
-  /// The map will hold list iterators. Note that list iterators don't invalidate
-  /// unless you erase the underlying item. They're effectively like having a node pointer
+  /// The map will hold keys, but the values are list iterators. Note that list iterators don't invalidate
+  /// unless you erase the underlying item, thus they're effectively like having a node pointer
   MapType map_;
+
+  /// The list holds the key/value pairs
   ListType list_;
+
+  /// Maximum size for the cache (aka max num entries)
   sizex maxSize_ = 10;
 
+  // We let the cache and iterators access each other's privates
   friend UnorderedIterator;
   friend ConstUnorderedIterator;
   friend OrderedIterator;
@@ -429,21 +434,21 @@ public:
   using Value = typename CacheType::ValueType;
 
   ////////////////////////////////////////////////////////////////////////////////
-  // Allow direct conversion from non-const to const iterator
+  /// Allow direct conversion from non-const to const iterator
   template <typename T = MemberIter>
   LruIterator(const NonConstIter& iter,
               typename std::enable_if<std::is_same<T, ConstMemberIter>::value>::type* = 0) noexcept :
       iter_(iter.iter_) {}
 
   ////////////////////////////////////////////////////////////////////////////////
-  // Allow iterator increment
+  /// Allow iterator pre-increment
   IterType& operator++() {
     ++iter_;
     return static_cast<IterType&>(*this);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  // Allow iterator decrement
+  /// Allow iterator post-increment
   IterType operator++(int) & {  // NOLINT const return
     IterType tmp = *this;
     operator++();
@@ -451,7 +456,7 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Allow iterator decrement for ordered iterators only
+  /// Allow iterator pre-decrement for wrapped bidirectional iterators only
   template <typename T = MemberIterCategory>
   typename std::enable_if<std::is_base_of<std::bidirectional_iterator_tag, T>::value, IterType>::type&
   operator--() {
@@ -460,7 +465,7 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  /// Allow iterator decrement for ordered iterators only
+  /// Allow iterator post-decrement for wrapped bidirectional iterators only
   template <typename T = MemberIterCategory>
   typename std::enable_if<std::is_base_of<std::bidirectional_iterator_tag, T>::value,
                           IterType>::type  // NOLINT const return
@@ -471,20 +476,20 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  // All iterator can support const access to key/values
+  /// All iterators can support const access to key/values
   const Key& key() const { return CacheType::keyFromIter(iter_); }
   const Value& value() const { return CacheType::valueFromIter(iter_); }
   const Value& operator*() const { return CacheType::valueFromIter(iter_); }
 
   ////////////////////////////////////////////////////////////////////////////////
-  // Allow value setting from non-const iterators
+  /// Allow value setting from non-const iterators only
   template <typename NonConstIter = MemberIter>
   typename std::enable_if<!std::is_same<NonConstIter, ConstMemberIter>::value, Value>::type& value() {
     return CacheType::valueFromIter(iter_);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  // Allow value setting from non-const iterators
+  /// Allow value setting from non-const iterators only
   template <typename NonConstIter = MemberIter>
   typename std::enable_if<!std::is_same<NonConstIter, ConstMemberIter>::value, Value>::type& operator*()
       const {
@@ -492,16 +497,18 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  // Allow iterator equality comparisons
+  /// Allow iterator equality comparisons
   friend bool operator==(const IterType& i1, const IterType& i2) { return i1.iter_ == i2.iter_; }
   friend bool operator!=(const IterType& i1, const IterType& i2) { return i1.iter_ != i2.iter_; }
 
 private:
+  /// No public construction
   explicit LruIterator(MemberIterType iter) noexcept : iter_(iter) {}
 
   // All we really do is wrap a real iterator
   MemberIterType iter_;
 
+  // We let the cache and iterators access each other's privates
   friend CacheType;
   friend class LruIterator<CacheType, ConstMemberIter, NonConstMemberIter, ConstMemberIter>;
 };
