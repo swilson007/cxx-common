@@ -287,4 +287,23 @@ TEST(LruCacheTest, copyCache) {
   ASSERT_EQ(lru2.endOrdered(), iter2);
 }
 
+TEST(LruCacheTest, copyCacheMoveAndCopy) {
+  {
+    auto lru = LruCache<int, CopyOnly, false>(2);
+    CopyOnly co{5};
+    lru.put(5, co);
+
+    auto lru2 = lru;
+  }
+
+#if 0
+  // Note this should (and does) cause a compile error since we can't copy a moveable type
+  {
+    auto lru = LruCache<int, MoveOnly, false>(2);
+    lru.put(4, MoveOnly{4});
+    auto lru2 = lru;
+  }
+#endif
+}
+
 };  // namespace sw

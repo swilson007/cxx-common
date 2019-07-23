@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <list>
 #include <memory>
+#include <type_traits>
 
 namespace sw {
 
@@ -50,15 +51,10 @@ using SysHashMap = std::unordered_map<Key, T, Hash, KeyEqual, Allocator>;
 #endif
 
 namespace lru_detail {
-template <typename LruCache>
-class UnorderedIterator;
-template <typename LruCache>
-class ConstUnorderedIterator;
 
-template <typename LruCache>
-class OrderedIterator;
-template <typename LruCache>
-class ConstOrderedIterator;
+template <typename Cache, typename MemberIter, typename NonConstMemberIter, typename ConstMemberIter>
+class LruIterator;
+
 }  // namespace lru_detail
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,6 +117,7 @@ class ConstOrderedIterator;
 ////////////////////////////////////////////////////////////////////////////////
 template <typename Key, typename T, bool kAutoPurge = true>
 class LruCache {
+  using ThisType = LruCache<Key, T, kAutoPurge>;
   using KeyValuePair = std::pair<Key, T>;
   using ListType = std::list<KeyValuePair>;
   using ListIter = typename ListType::iterator;
@@ -130,13 +127,12 @@ class LruCache {
   using MapIter = typename Map::iterator;
   using ConstMapIter = typename Map::const_iterator;
 
-  using ThisType = LruCache<Key, T, kAutoPurge>;
-
 public:
-  using UnorderedIterator = lru_detail::UnorderedIterator<ThisType>;
-  using ConstUnorderedIterator = lru_detail::ConstUnorderedIterator<ThisType>;
-  using OrderedIterator = lru_detail::OrderedIterator<ThisType>;
-  using ConstOrderedIterator = lru_detail::ConstOrderedIterator<ThisType>;
+  using UnorderedIterator = lru_detail::LruIterator<ThisType, MapIter, MapIter, ConstMapIter>;
+  using ConstUnorderedIterator = lru_detail::LruIterator<ThisType, ConstMapIter, MapIter, ConstMapIter>;
+  using OrderedIterator = lru_detail::LruIterator<ThisType, ListIter, ListIter, ConstListIter>;
+  using ConstOrderedIterator = lru_detail::LruIterator<ThisType, ConstListIter, ListIter, ConstListIter>;
+
   using Iterator = UnorderedIterator;
   using ConstIterator = ConstUnorderedIterator;
   using KeyType = Key;
@@ -253,16 +249,16 @@ public:
     if (iter == map_.end()) {
       // No item. We needs to create a default value in that case
       // First insert a default value to the front of the list, then add it to the map
-      list_.push_front(std::make_pair(key, T{}));
+      list_.emplace_front(key, T{});
       auto listIter = list_.begin();
-      map_.insert(std::make_pair(key, listIter));
+      map_.emplace(key, listIter);
       doAutoPurge();
-      return getValue(listIter);
+      return valueFromIter(listIter);
     }
 
     // The item already exists - bring it to the front of the list since it's been "used"
     onValueUsed(iter);
-    return getValue(iter);
+    return valueFromIter(iter);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -271,12 +267,12 @@ public:
     auto iter = map_.find(key);
     if (iter == map_.end()) {
       // New item
-      list_.push_front(std::make_pair(key, value));
-      map_.insert(std::make_pair(key, list_.begin()));
+      list_.emplace_front(key, value);
+      map_.emplace(key, list_.begin());
       doAutoPurge();
     } else {
       // Item already exists. Update the mapped value and push it to the front
-      getValue(iter) = value;
+      valueFromIter(iter) = value;
       onValueUsed(iter);
     }
   }
@@ -287,12 +283,12 @@ public:
     auto iter = map_.find(key);
     if (iter == map_.end()) {
       // New item
-      list_.push_front(std::make_pair(key, std::move(value)));
-      map_.insert(std::make_pair(key, list_.begin()));
+      list_.emplace_front(key, std::move(value));
+      map_.emplace(key, list_.begin());
       doAutoPurge();
     } else {
       // Item already exists. Update the mapped value and push it to the front
-      getValue(iter) = std::move(value);
+      valueFromIter(iter) = std::move(value);
       onValueUsed(iter);
     }
   }
@@ -307,7 +303,7 @@ public:
     }
 
     onValueUsed(iter);
-    value = getValue(iter);
+    value = valueFromIter(iter);
     return true;
   }
 
@@ -349,12 +345,12 @@ public:
 
 private:
   // Clarity Helpers
-  static const KeyType& getKey(const ConstListIter& listIter) noexcept { return (*listIter).first; }
-  static const T& getValue(const ConstListIter& listIter) noexcept { return (*listIter).second; }
-  static T& getValue(const ListIter& listIter) noexcept { return (*listIter).second; }
-  static const KeyType& getKey(const ConstMapIter& mapIter) noexcept { return mapIter->first; }
-  static T& getValue(const ConstMapIter& mapIter) noexcept { return getValue(mapIter->second); }
-  static T& getValue(const MapIter& mapIter) noexcept { return getValue(mapIter->second); }
+  static const KeyType& keyFromIter(const ConstListIter& listIter) noexcept { return (*listIter).first; }
+  static const T& valueFromIter(const ConstListIter& listIter) noexcept { return (*listIter).second; }
+  static T& valueFromIter(const ListIter& listIter) noexcept { return (*listIter).second; }
+  static const KeyType& keyFromIter(const ConstMapIter& mapIter) noexcept { return mapIter->first; }
+  static T& valueFromIter(const ConstMapIter& mapIter) noexcept { return valueFromIter(mapIter->second); }
+  static T& valueFromIter(const MapIter& mapIter) noexcept { return valueFromIter(mapIter->second); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Call this when a cached value is used, thus pushing it to the front of the list.
@@ -365,7 +361,7 @@ private:
     // Delete the last (aka oldest) item till our size is ok
     while (size() > maxSize_) {
       auto listIter = --list_.end();
-      auto mapIter = map_.find(LruCache::getKey(listIter));
+      auto mapIter = map_.find(LruCache::keyFromIter(listIter));
       SW_ASSERT(mapIter != map_.end());
       map_.erase(mapIter);
       list_.erase(listIter);
@@ -393,8 +389,8 @@ private:
       --iter;
       const auto& key = iter.key();
       const auto& value = iter.value();
-      list_.push_front(std::make_pair(iter.key(), iter.value()));
-      map_.insert(std::make_pair(iter.key(), list_.begin()));
+      list_.emplace_front(iter.key(), iter.value());
+      map_.emplace(iter.key(), list_.begin());
     } while (iter != cache.cbeginOrdered());
   }
 
@@ -414,213 +410,100 @@ private:
 namespace lru_detail {
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Accessing an element using the unordered iterator won't change the LRU ordering
-/// Certain operations take an UnorderedIterator because it's more efficient for
-/// those operations than the ordered iterator.
-template <typename CacheType>
-class UnorderedIterator {
+/// Iterator that wraps an actual iterator
+template <typename Cache, typename MemberIter, typename NonConstMemberIter, typename ConstMemberIter>
+class LruIterator {
+  // Ensure our template args seem valid
+  static_assert((std::is_same<MemberIter, ConstMemberIter>::value ||
+                 std::is_same<MemberIter, NonConstMemberIter>::value),
+                "xxx");
+
+  using IterType = LruIterator;
+  using CacheType = Cache;
+  using MemberIterType = MemberIter;
+  using MemberIterCategory = typename std::iterator_traits<MemberIterType>::iterator_category;
+  using NonConstIter = LruIterator<CacheType, NonConstMemberIter, NonConstMemberIter, ConstMemberIter>;
+
 public:
   using Key = typename CacheType::KeyType;
   using Value = typename CacheType::ValueType;
-  using MapIter = typename CacheType::MapIter;
 
-  UnorderedIterator& operator++() {
+  ////////////////////////////////////////////////////////////////////////////////
+  // Allow direct conversion from non-const to const iterator
+  template <typename T = MemberIter>
+  LruIterator(const NonConstIter& iter,
+              typename std::enable_if<std::is_same<T, ConstMemberIter>::value>::type* = 0) noexcept :
+      iter_(iter.iter_) {}
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Allow iterator increment
+  IterType& operator++() {
     ++iter_;
-    return *this;
+    return static_cast<IterType&>(*this);
   }
 
-  UnorderedIterator operator++(int) & {  // NOLINT const return
-    UnorderedIterator tmp = *this;
+  ////////////////////////////////////////////////////////////////////////////////
+  // Allow iterator decrement
+  IterType operator++(int) & {  // NOLINT const return
+    IterType tmp = *this;
     operator++();
     return tmp;
   }
 
-  UnorderedIterator& operator--() {
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Allow iterator decrement for ordered iterators only
+  template <typename T = MemberIterCategory>
+  typename std::enable_if<std::is_base_of<std::bidirectional_iterator_tag, T>::value, IterType>::type&
+  operator--() {
     --iter_;
-    return *this;
+    return static_cast<IterType&>(*this);
   }
 
-  UnorderedIterator operator--(int) & {  // NOLINT const return
-    UnorderedIterator tmp = *this;
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Allow iterator decrement for ordered iterators only
+  template <typename T = MemberIterCategory>
+  typename std::enable_if<std::is_base_of<std::bidirectional_iterator_tag, T>::value,
+                          IterType>::type  // NOLINT const return
+  operator--(int) & {
+    IterType tmp = *this;
     operator--();
     return tmp;
   }
 
-  const Key& key() const { return CacheType::getKey(iter_); }
-  Value& value() { return CacheType::getValue(iter_); }
-  const Value& value() const { return CacheType::getValue(iter_); }
-  Value& operator*() { return CacheType::getValue(iter_); }
-  const Value& operator*() const { return CacheType::getValue(iter_); }
+  ////////////////////////////////////////////////////////////////////////////////
+  // All iterator can support const access to key/values
+  const Key& key() const { return CacheType::keyFromIter(iter_); }
+  const Value& value() const { return CacheType::valueFromIter(iter_); }
+  const Value& operator*() const { return CacheType::valueFromIter(iter_); }
 
-  friend bool operator==(const UnorderedIterator& i1, const UnorderedIterator& i2) {
-    return i1.iter_ == i2.iter_;
+  ////////////////////////////////////////////////////////////////////////////////
+  // Allow value setting from non-const iterators
+  template <typename NonConstIter = MemberIter>
+  typename std::enable_if<!std::is_same<NonConstIter, ConstMemberIter>::value, Value>::type& value() {
+    return CacheType::valueFromIter(iter_);
   }
-  friend bool operator!=(const UnorderedIterator& i1, const UnorderedIterator& i2) {
-    return i1.iter_ != i2.iter_;
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Allow value setting from non-const iterators
+  template <typename NonConstIter = MemberIter>
+  typename std::enable_if<!std::is_same<NonConstIter, ConstMemberIter>::value, Value>::type& operator*()
+      const {
+    return CacheType::valueFromIter(iter_);
   }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Allow iterator equality comparisons
+  friend bool operator==(const IterType& i1, const IterType& i2) { return i1.iter_ == i2.iter_; }
+  friend bool operator!=(const IterType& i1, const IterType& i2) { return i1.iter_ != i2.iter_; }
 
 private:
-  explicit UnorderedIterator(MapIter iter) noexcept : iter_(iter) {}
-  MapIter iter_;
-  friend CacheType;
-  friend class ConstUnorderedIterator<CacheType>;
-};
+  explicit LruIterator(MemberIterType iter) noexcept : iter_(iter) {}
 
-////////////////////////////////////////////////////////////////////////////////
-/// Accessing an element using the unordered iterator won't change the LRU ordering
-/// Certain operations take an UnorderedIterator because it's more efficient for
-/// those operations than the ordered iterator.
-template <typename CacheType>
-class ConstUnorderedIterator {
-public:
-  using Key = typename CacheType::KeyType;
-  using Value = typename CacheType::ValueType;
-  using ConstMapIter = typename CacheType::ConstMapIter;
-
-  // Allow direct conversion from non-const iterator
-  ConstUnorderedIterator(UnorderedIterator<CacheType> iter) : iter_(iter.iter_) {}
-
-  ConstUnorderedIterator& operator++() {
-    ++iter_;
-    return *this;
-  }
-
-  ConstUnorderedIterator operator++(int) & {  // NOLINT const return
-    ConstUnorderedIterator tmp = *this;
-    operator++();
-    return tmp;
-  }
-
-  ConstUnorderedIterator& operator--() {
-    --iter_;
-    return *this;
-  }
-
-  ConstUnorderedIterator operator--(int) & {  // NOLINT const return
-    ConstUnorderedIterator tmp = *this;
-    operator--();
-    return tmp;
-  }
-
-  const Key& key() const { return CacheType::getKey(iter_); }
-  const Value& value() const { return CacheType::getValue(iter_); }
-  const Value& operator*() const { return CacheType::getValue(iter_); }
-
-  friend bool operator==(const ConstUnorderedIterator& i1, const ConstUnorderedIterator& i2) {
-    return i1.iter_ == i2.iter_;
-  }
-  friend bool operator!=(const ConstUnorderedIterator& i1, const ConstUnorderedIterator& i2) {
-    return i1.iter_ != i2.iter_;
-  }
-
-private:
-  explicit ConstUnorderedIterator(ConstMapIter iter) noexcept : iter_(iter) {}
-  ConstMapIter iter_;
-  friend CacheType;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// Accessing an element using the ordered iterator won't change the LRU ordering
-template <typename CacheType>
-class OrderedIterator {
-public:
-  using Key = typename CacheType::KeyType;
-  using Value = typename CacheType::ValueType;
-  using ListIter = typename CacheType::ListIter;
-
-  OrderedIterator& operator++() {
-    ++iter_;
-    return *this;
-  }
-
-  OrderedIterator operator++(int) & {  // NOLINT const return
-    OrderedIterator tmp = *this;
-    operator++();
-    return tmp;
-  }
-
-  OrderedIterator& operator--() {
-    --iter_;
-    return *this;
-  }
-
-  OrderedIterator operator--(int) & {  // NOLINT const return
-    OrderedIterator tmp = *this;
-    operator--();
-    return tmp;
-  }
-
-  const Key& key() const { return CacheType::getKey(iter_); }
-  Value& value() { return CacheType::getValue(iter_); }
-  const Value& value() const { return CacheType::getValue(iter_); }
-  Value& operator*() { return CacheType::getValue(iter_); }
-  const Value& operator*() const { return CacheType::getValue(iter_); }
-
-  friend bool operator==(const OrderedIterator& i1, const OrderedIterator& i2) {
-    return i1.iter_ == i2.iter_;
-  }
-  friend bool operator!=(const OrderedIterator& i1, const OrderedIterator& i2) {
-    return i1.iter_ != i2.iter_;
-  }
-
-private:
-  explicit OrderedIterator(ListIter iter) noexcept : iter_(iter) {}
-  ListIter iter_;
+  // All we really do is wrap a real iterator
+  MemberIterType iter_;
 
   friend CacheType;
-  friend class ConstOrderedIterator<CacheType>;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/// Accessing an element using the ordered iterator won't change the LRU ordering
-template <typename CacheType>
-class ConstOrderedIterator {
-public:
-  using Key = typename CacheType::KeyType;
-  using Value = typename CacheType::ValueType;
-  using ConstListIter = typename CacheType::ConstListIter;
-
-  // Allow direct conversion from non-const iterator
-  ConstOrderedIterator(OrderedIterator<CacheType> iter) : iter_(iter.iter_) {}
-
-  ConstOrderedIterator& operator++() {
-    ++iter_;
-    return *this;
-  }
-
-  ConstOrderedIterator operator++(int) & {  // NOLINT const return
-    ConstOrderedIterator tmp = *this;
-    operator++();
-    return tmp;
-  }
-
-  ConstOrderedIterator& operator--() {
-    --iter_;
-    return *this;
-  }
-
-  ConstOrderedIterator operator--(int) & {  // NOLINT const return
-    ConstOrderedIterator tmp = *this;
-    operator--();
-    return tmp;
-  }
-
-  const Key& key() const { return CacheType::getKey(iter_); }
-  const Value& value() const { return CacheType::getValue(iter_); }
-  const Value& operator*() const { return CacheType::getValue(iter_); }
-
-  friend bool operator==(const ConstOrderedIterator& i1, const ConstOrderedIterator& i2) {
-    return i1.iter_ == i2.iter_;
-  }
-  friend bool operator!=(const ConstOrderedIterator& i1, const ConstOrderedIterator& i2) {
-    return i1.iter_ != i2.iter_;
-  }
-
-private:
-  explicit ConstOrderedIterator(ConstListIter iter) noexcept : iter_(iter) {}
-  ConstListIter iter_;
-
-  friend CacheType;
+  friend class LruIterator<CacheType, ConstMemberIter, NonConstMemberIter, ConstMemberIter>;
 };
 
 }  // namespace lru_detail
