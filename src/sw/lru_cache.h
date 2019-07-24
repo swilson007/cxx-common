@@ -177,7 +177,7 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Sets the maximum size of the map. Will purge items when `kAutoPurge` is
   /// true and the maximum size is reduced.
-  void setMaxSize(sizex maxSizeValue) noexcept {
+  void setMaxSize(sizex maxSizeValue) {
     auto newMaxSize = std::max(maxSizeValue, 1_z);
     bool isSmaller = newMaxSize < maxSize_;
     maxSize_ = newMaxSize;
