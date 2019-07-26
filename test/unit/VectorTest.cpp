@@ -55,9 +55,9 @@ TEST(VectorTest, testCopy) {
   vec.push_back(2);
 
   Vector<int> vec2 = vec;
-  ASSERT_EQ(2, vec.size());
+  ASSERT_EQ(2u, vec.size());
   ASSERT_EQ(vec.size(), vec2.size());
-  ASSERT_EQ(10, vec.capacity());
+  ASSERT_EQ(10u, vec.capacity());
   ASSERT_EQ(vec.capacity(), vec2.capacity());
   ASSERT_EQ(1, vec[0]);
   ASSERT_EQ(1, vec2[0]);
@@ -70,12 +70,12 @@ TEST(VectorTest, testMove) {
   vec.push_back(2);
   Vector<int> vec2 = std::move(vec);
 
-  ASSERT_EQ(2, vec2.size());
-  ASSERT_EQ(10, vec2.capacity());
+  ASSERT_EQ(2u, vec2.size());
+  ASSERT_EQ(10u, vec2.capacity());
   ASSERT_NE(nullptr, vec2.data());
   ASSERT_EQ(1, vec2[0]);
-  ASSERT_EQ(0, vec.size());
-  ASSERT_EQ(0, vec.capacity());
+  ASSERT_EQ(0u, vec.size());
+  ASSERT_EQ(0u, vec.capacity());
   ASSERT_EQ(nullptr, vec.data());
 }
 
@@ -100,18 +100,18 @@ TEST(VectorTest, testGetters) {
   vec.push_back(1);
   vec.push_back(2);
   vec.push_back(3);
-  ASSERT_EQ(1, vec.front());
-  ASSERT_EQ(3, vec.back());
-  ASSERT_EQ(1, vec.at(0));
-  ASSERT_EQ(2, vec.at(1));
-  ASSERT_EQ(3, vec.at(2));
+  ASSERT_EQ(1u, vec.front());
+  ASSERT_EQ(3u, vec.back());
+  ASSERT_EQ(1u, vec.at(0));
+  ASSERT_EQ(2u, vec.at(1));
+  ASSERT_EQ(3u, vec.at(2));
   vec.at(0) = 5;
-  ASSERT_EQ(5, vec.at(0));
+  ASSERT_EQ(5u, vec.at(0));
 }
 
 TEST(VectorTest, testInitList) {
   Vector<i32> vec = {1, 2, 3};
-  ASSERT_EQ(3, vec.size());
+  ASSERT_EQ(3u, vec.size());
   ASSERT_EQ(1, vec.front());
   ASSERT_EQ(3, vec.back());
   ASSERT_EQ(1, vec.at(0));
@@ -128,7 +128,7 @@ TEST(VectorTest, testIters) {
     for (const auto& TrackedItem : vec) {
       ++count;
     }
-    ASSERT_EQ(10, count);
+    ASSERT_EQ(10u, count);
   }
   ASSERT_EQ(0, TrackedItem::sItems);
 }

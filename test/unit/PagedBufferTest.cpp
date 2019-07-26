@@ -29,18 +29,18 @@ namespace sw {
 ////////////////////////////////////////////////////////////////////////////////
 TEST(PagedBufferTest, basicTest) {
   auto buffer = PagedBuffer<4>(0);
-  ASSERT_EQ(buffer.size(), 0);
+  ASSERT_EQ(buffer.size(), 0u);
   const std::array<byte, 1024> sourceBuffer = {{0, 1, 2, 3, 4, 5}};
   sizex pos = 0;
   buffer.append(sourceBuffer.data(), 6);
-  ASSERT_EQ(buffer.size(), 6);
+  ASSERT_EQ(buffer.size(), 6u);
   ASSERT_TRUE(buffer.capacity() > buffer.size());
   ASSERT_EQ(buffer[0], 0);
   ASSERT_EQ(buffer[1], 1);
   ASSERT_EQ(buffer[5], 5);
 
   buffer.append(sourceBuffer.data(), 6);
-  ASSERT_EQ(buffer.size(), 12);
+  ASSERT_EQ(buffer.size(), 12u);
   ASSERT_EQ(buffer[6], 0);
   ASSERT_EQ(buffer[7], 1);
   ASSERT_EQ(buffer[11], 5);

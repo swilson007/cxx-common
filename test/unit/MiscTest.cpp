@@ -16,50 +16,36 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <gtest/gtest.h>
-#include <sw/buffers.h>
+#include <sw/misc.h>
+#include <sw/fixed_width_int_literals.h>
 
-#include <array>
+#include <gtest/gtest.h>
+
+#include <strstream>
 
 namespace sw {
 
-TEST(BuffersTest, testUniqueBufferBasics) {
-  // Basic creation. Set values to induce memory problems if they exist
-  const sizex kBufSize = 10000;
-  UniqueBuffer ub1 = makeUniqueBuffer(kBufSize);
-  for (sizex i = 0; i < kBufSize; ++i) {
-    ub1[i] = static_cast<byte>(i);
-  }
-  ASSERT_NE(nullptr, ub1.data());
-  ASSERT_EQ(kBufSize, ub1.size());
+using namespace sw::intliterals;
 
-  // Basic move
-  UniqueBuffer ub2 = std::move(ub1);
-  ASSERT_NE(nullptr, ub2.data());
-  ASSERT_EQ(kBufSize, ub2.size());
-  ASSERT_EQ(nullptr, ub1.data());
-  ASSERT_EQ(0u, ub1.size());
+SW_DEFINE_POD_TYPE(PodValueA, u32, ~0_u32, ~0_u32);
+SW_DEFINE_POD_TYPE(PodValueB, u32, ~0_u32, ~0_u32);
 
-  // Swap
-  const sizex kBufSize2 = 10;
-  UniqueBuffer ub3 = makeUniqueBuffer(kBufSize2);
-  swap(ub2, ub3);
-  ASSERT_EQ(kBufSize, ub3.size());
-  ASSERT_EQ(kBufSize2, ub2.size());
-}
+////////////////////////////////////////////////////////////////////////////////
+TEST(MiscTest, podWrapperTest) {
+  PodValueA a = 5;
+  PodValueB b = 7;
+  ASSERT_EQ(5, a);
+  ASSERT_EQ(7, b);
+  ASSERT_EQ(std::numeric_limits<u32>::max(), PodValueA::invalidValue());
 
-TEST(BuffersTest, testBufferWrapperBasics) {
-  const sizex kBufSize = 10;
-  UniqueBuffer ub1 = makeUniqueBuffer(kBufSize);
-  for (sizex i = 0; i < kBufSize; ++i) {
-    ub1[i] = static_cast<byte>(i);
-  }
+  PodValueA a2 = 5;
+  ASSERT_TRUE(a == a2);
+  ASSERT_FALSE(a < a2);
+  ASSERT_FALSE(a > a2);
 
-  BufferView bv1(ub1.data(), ub1.size());
-  ASSERT_EQ(kBufSize, bv1.size());
-  for (sizex i = 0; i < kBufSize; ++i) {
-    ASSERT_EQ(ub1[i], bv1[i]);
-  }
+  std::ostringstream outs;
+  outs << "a=" << a << ", b=" << b;
+  ASSERT_EQ("a=5, b=7", outs.str());
 }
 
 }  // namespace sw

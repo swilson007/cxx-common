@@ -1,35 +1,21 @@
 project(cxx-common-unit-tests)
 
-# BEGIN: Quick hack for googletest support. For now, using ExternalProject to download it.
-set(DownloadsDir ${CMAKE_BINARY_DIR}/downloads)
-configure_file(${CxxCommonDir}/cmake/downloads-template.cmake ${DownloadsDir}/CMakeLists.txt COPYONLY)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${DownloadsDir})
-execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${DownloadsDir} )
-set(GoogletestDir ${DownloadsDir}/googletest)
-# END: Quick hack for googletest support. For now, using ExternalProject to download it.
+find_package(gtest REQUIRED) 
 
 # Auto-find test sources
 file(GLOB TestSources "*.cpp" )
 
-# Taking the simplistic "compile gtest-all.cc" directly into the project approach
-# The main reason is I'm not sure how to compile it properly using my compilers
-# options via the ExternalProject call. #someday
-set(GoogletestDir ${GoogletestDir}/googletest)
-
 # Test Sources
-set(AllSources ${TestSources}
-        ${GoogletestDir}/src/gtest_main.cc
-        ${GoogletestDir}/src/gtest-all.cc)
+set(AllSources ${TestSources})
 
 add_executable(${PROJECT_NAME} ${AllSources})
 
-target_compile_features(${PROJECT_NAME} PUBLIC ${StandardCxxCompilerFeatures})
-target_compile_definitions(${PROJECT_NAME} PUBLIC ${StandardCxxDefines})
-target_compile_options(${PROJECT_NAME} PUBLIC ${StandardCxxWarnings})
-message("unit test: Warnings=${StandardCxxWarnings}")
-target_compile_options(${PROJECT_NAME} PUBLIC ${StandardCxxFlags})
+target_compile_features(${PROJECT_NAME} PRIVATE ${StandardCxxCompilerFeatures})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${StandardCxxDefines})
+target_compile_options(${PROJECT_NAME} PRIVATE ${StandardCxxWarnings})
+target_compile_options(${PROJECT_NAME} PRIVATE ${StandardCxxFlags})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${ScwSrcDir})
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${GoogletestDir}/include ${GoogletestDir})
+target_include_directories(${PROJECT_NAME} PRIVATE ${ScwSrcDir})
 
+target_link_libraries(${PROJECT_NAME} GTest::GTest GTest::Main)
 
