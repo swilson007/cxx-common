@@ -3,8 +3,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(cxx-common)
 
+# Conan support for packages
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake OPTIONAL)
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(MACOSX TRUE)
+    set(MACOS TRUE)
+    message("OSX_SYSROOT=${CMAKE_OSX_SYSROOT}")
 endif()
 
 ################################################################################
@@ -12,7 +16,7 @@ endif()
 if (MSVC)
     set(OS_BUILD_DIR "win64_v141")    # TODO
     message("Found MSVC")
-elseif (MACOSX)
+elseif (MACOS)
     set(OS_BUILD_DIR "macosx64")
     message("Found MacOS")
 elseif (LINUX)
@@ -49,7 +53,7 @@ if (MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1")
     endif()
 
-elseif (MACOSX)
+elseif (MACOS)
     list(APPEND StandardCxxDefines
       -DSW_OS=MACOS -DSW_UNIX=1 -DSW_MACOS=1)
 

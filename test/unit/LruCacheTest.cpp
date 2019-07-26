@@ -43,7 +43,7 @@ TEST(LruCacheTest, lruPutAndGet) {
   lru.put(1, "1");
   lru.put(2, "2");
   lru.put(3, "3");
-  ASSERT_EQ(3, lru.size());
+  ASSERT_EQ(3u, lru.size());
   ASSERT_EQ("1", lru[1]);
   ASSERT_EQ("2", lru[2]);
   ASSERT_EQ("3", lru[3]);
@@ -61,9 +61,9 @@ TEST(LruCacheTest, keyErase) {
   lru[1] = "1";
   lru[2] = "2";
   lru[3] = "3";
-  ASSERT_EQ(3, lru.size());
+  ASSERT_EQ(3u, lru.size());
   lru.erase(2);
-  ASSERT_EQ(2, lru.size());
+  ASSERT_EQ(2u, lru.size());
   ASSERT_EQ("1", lru[1]);
   ASSERT_EQ("3", lru[3]);
   ASSERT_EQ("", lru[2]);
@@ -75,13 +75,13 @@ TEST(LruCacheTest, iterErase) {
   lru[2] = "2";
   lru[3] = "3";
   lru[4] = "4";
-  ASSERT_EQ(4, lru.size());
+  ASSERT_EQ(4u, lru.size());
 
   {
     auto iter = lru.find(1);
     ASSERT_NE(lru.end(), iter);
     lru.erase(iter);
-    ASSERT_EQ(3, lru.size());
+    ASSERT_EQ(3u, lru.size());
     iter = lru.find(1);
     ASSERT_EQ(lru.end(), iter);
   }
@@ -91,7 +91,7 @@ TEST(LruCacheTest, iterErase) {
     auto iter = lru.cfind(2);
     ASSERT_NE(lru.cend(), iter);
     lru.erase(iter);
-    ASSERT_EQ(2, lru.size());
+    ASSERT_EQ(2u, lru.size());
     iter = lru.cfind(2);
     ASSERT_EQ(lru.cend(), iter);
   }
@@ -100,7 +100,7 @@ TEST(LruCacheTest, iterErase) {
   {
     lru[1] = "1";
     lru[2] = "2";
-    ASSERT_EQ(4, lru.size());
+    ASSERT_EQ(4u, lru.size());
     for (auto iter = lru.cbegin(); iter != lru.cend();) {
       iter = lru.erase(iter);
     }
@@ -149,9 +149,9 @@ TEST(LruCacheTest, manualPurge) {
   lru.put(3, "3");
   lru.put(2, "2");
   lru.put(1, "1");
-  ASSERT_EQ(4, lru.size());
+  ASSERT_EQ(4u, lru.size());
   lru.purge();
-  ASSERT_EQ(2, lru.size());
+  ASSERT_EQ(2u, lru.size());
   auto iter = lru.beginOrdered();
   ASSERT_EQ("1", *iter++);
   ASSERT_EQ("2", *iter++);
@@ -164,9 +164,9 @@ TEST(LruCacheTest, autoPurge) {
     lru.put(4, "4");
     lru.put(3, "3");
     lru.put(2, "2");
-    ASSERT_EQ(2, lru.size());
+    ASSERT_EQ(2u, lru.size());
     lru.put(1, "1");
-    ASSERT_EQ(2, lru.size());
+    ASSERT_EQ(2u, lru.size());
     auto iter = lru.beginOrdered();
     ASSERT_EQ("1", *iter++);
     ASSERT_EQ("2", *iter++);
@@ -178,9 +178,9 @@ TEST(LruCacheTest, autoPurge) {
     lru[4] = "4";
     lru[3] = "3";
     lru[2] = "2";
-    ASSERT_EQ(2, lru.size());
+    ASSERT_EQ(2u, lru.size());
     lru[1] = "1";
-    ASSERT_EQ(2, lru.size());
+    ASSERT_EQ(2u, lru.size());
     auto iter = lru.beginOrdered();
     ASSERT_EQ("1", *iter++);
     ASSERT_EQ("2", *iter++);
@@ -256,11 +256,11 @@ TEST(LruCacheTest, moveCache) {
   auto lru = LruCache<int, std::string, true>(2);
   lru.put(2, "2");
   lru.put(1, "1");
-  ASSERT_EQ(2, lru.size());
+  ASSERT_EQ(2u, lru.size());
 
   auto lru2 = std::move(lru);
-  ASSERT_EQ(0, lru.size());
-  ASSERT_EQ(2, lru2.size());
+  ASSERT_EQ(0u, lru.size());
+  ASSERT_EQ(2u, lru2.size());
   auto iter = lru2.beginOrdered();
   ASSERT_EQ("1", *iter++);
   ASSERT_EQ("2", *iter++);
@@ -271,14 +271,14 @@ TEST(LruCacheTest, copyCache) {
   auto lru = LruCache<int, std::string, true>(2);
   lru.put(2, "2");
   lru.put(1, "1");
-  ASSERT_EQ(2, lru.size());
+  ASSERT_EQ(2u, lru.size());
 
   // Copy it
   auto lru2 = lru;
 
   // Verify
-  ASSERT_EQ(2, lru.size());
-  ASSERT_EQ(2, lru2.size());
+  ASSERT_EQ(2u, lru.size());
+  ASSERT_EQ(2u, lru2.size());
   auto iter = lru.beginOrdered();
   auto iter2 = lru2.beginOrdered();
   ASSERT_EQ(*iter++, *iter2++);

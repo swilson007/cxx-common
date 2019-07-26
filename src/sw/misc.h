@@ -152,31 +152,37 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Wrapper template to make POD types into distinct types.
-/// Includes invalid support, but you can just ignore if you don't need invalid.
+/// Includes invalid support and unset support, but you can just ignore what you don't need.
 ///
 /// Example: Declare as follows:
 ///   class MyUint32 : public PodWrapper<u32> { using PodWrapper::PodWrapper; };
 ///
-template <typename T, T kInvalidValue = 0>
+template <typename T, T kUnsetValue = 0, T kInvalidValue = 0>
 class PodWrapper {
 public:
   using ValueType = T;
-  static constexpr T kInvalid = kInvalidValue;
 
-  PodWrapper() = default;
+  static constexpr T unsetValue() { return kUnsetValue; }
+  static constexpr T invalidValue() { return kInvalidValue; }
 
-  // Explicit conversion intentional
-  PodWrapper(const T& v) : value(v) {}
+  constexpr PodWrapper() = default;
 
-  explicit operator bool() const = delete; // Prevent pain and suffering
+  /// Purposefully non-explicit conversion for ease of use
+  constexpr PodWrapper(const T& v) : value(v) {}  // NOLINT
 
-  explicit operator T&() { return value; }
-  explicit operator const T&() const { return value; }
+  explicit operator bool() const = delete; ///> Prevent pain and suffering
+
+  constexpr explicit operator T&() { return value; }
+  constexpr explicit operator const T&() const { return value; }
 
   void set(const T& v) { value = v; }
   T& get() { return value; }
   const T& get() const { return value; }
+
   bool isInvalid() const { return value == kInvalidValue; }
+  bool isValid() const { return value != kInvalidValue; }
+  bool isSet() const { return value != kUnsetValue; }
+  bool isUnset() const { return value == kUnsetValue; }
 
   bool equals(const PodWrapper& that) const { return value == that.value; }
   bool lessThan(const PodWrapper& that) const { return value < that.value; }
@@ -190,12 +196,25 @@ public:
   };
 
   // Allow direct public access
-  T value = kInvalidValue;
+  T value = kUnsetValue;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-template <typename T, T kInvalidValue>
-constexpr T PodWrapper<T, kInvalidValue>::kInvalid;
+/// Defines a class that wraps a POD value. The class will be a distinct type
+#define SW_DEFINE_POD_TYPE(classname_, podType_, unsetValue_, invalidValue_)              \
+  struct classname_ : public ::sw::PodWrapper<podType_, unsetValue_, invalidValue_>,      \
+                      public ::sw::EqualityMixin<classname_>,                             \
+                      public ::sw::CompareMixin<classname_> {                             \
+    classname_() = default;                                                               \
+    constexpr classname_(podType_ v) : PodWrapper(v) {}                                   \
+    classname_(const classname_& key) = default;                                          \
+    classname_& operator=(const classname_& key) = default;                               \
+    static classname_ unset() { return classname_(unsetValue()); }                        \
+    static classname_ invalid() { return classname_(invalidValue()); }                    \
+    classname_& operator++() { ++value; return *this; }                                   \
+    classname_ operator++(int) { auto tmp = *this; ++value; return tmp; }                 \
+  };                                                                                      \
+  static_assert(sizeof(classname_) == sizeof(podType_), "bad size")
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Operators for bitfields. Generally best to declare this just after the enum,
