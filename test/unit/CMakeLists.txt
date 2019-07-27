@@ -17,5 +17,5 @@ target_compile_options(${PROJECT_NAME} PRIVATE ${StandardCxxFlags})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${ScwSrcDir})
 
-target_link_libraries(${PROJECT_NAME} GTest::GTest GTest::Main)
+target_link_libraries(${PROJECT_NAME} PRIVATE GTest::GTest GTest::Main)
 
