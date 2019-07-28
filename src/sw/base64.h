@@ -91,7 +91,7 @@ inline std::string base64UrlEncode(const char* str, sizex len, bool pad = false)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template <typename Base64Traits>
+template <typename Base64TraitsType>
 inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad) {
   SW_ASSERT(((sourceLen << 2u) >> 2u) ==
             sourceLen);  // Ensure 2-MSbits are zero so we don't overflow
@@ -107,7 +107,7 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
   auto result = std::string(resultSize, '\0');
   sizex resultPos = 0;
 
-  const auto encode = [](byte bits6) -> char { return Base64Traits::encode(bits6); };
+  const auto encode = [](byte bits6) -> char { return Base64TraitsType::encode(bits6); };
 
   // Work through the array in 3-byte groups, encode every 6-bits into a single char
   const byte* pos = source;

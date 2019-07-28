@@ -89,6 +89,8 @@ public:
                                 NoDestruction::Unused>
   inline static void destructItems(T* dest, sizex count) {
     /// These type of items require no destruction!
+    (void)dest;
+    (void)count;
     nop();
   }
 

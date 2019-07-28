@@ -94,6 +94,8 @@ public:
   /// This will return a new array that has 'existingCount' count items copied from
   /// the given oldAddr. The new buffer will have space for newCount items
   T* reallocate(T* oldAddr, sizex existingCount, sizex /*oldCount*/, sizex newCount) {
+    (void)existingCount;
+
     auto newBuffer = static_cast<T*>(std::realloc(oldAddr, newCount * sizeof(T)));
     if (newBuffer == nullptr) {
       throw std::bad_alloc();

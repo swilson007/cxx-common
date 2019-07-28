@@ -172,16 +172,19 @@ std::string formatn(const StringWrapper& formatStr, Ts... ts) {
 template <typename Dest, typename Source>
 inline void saferAlias(Dest& dest, Source source) {
   static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same.");
-  static_assert(std::is_pointer<Source>::value, "Source type must be a pointer");
-  static_assert(std::is_pointer<Dest>::value, "Dest type must be a pointer");
-  static_assert(std::is_const<std::remove_pointer_t<Source>>::value ?
-                    std::is_const<std::remove_pointer_t<Dest>>::value :
-                    true,
-                "Can't cast away const with saferAlias");
-  static_assert(std::is_volatile<std::remove_pointer_t<Source>>::value ?
-                    std::is_volatile<std::remove_pointer_t<Dest>>::value :
-                    true,
-                "Can't cast away volatile with saferAlias");
+  static_assert(std::is_pointer<Source>::value || std::is_reference<Source>::value, "Source type must be a pointer or reference");
+  static_assert(std::is_pointer<Dest>::value || std::is_reference<Source>::value, "Dest type must be a pointer or reference");
+
+  // Ensure const/volatile aren't casted away
+  static_assert(std::is_pointer<Source>::value && std::is_const<std::remove_pointer_t<Source>>::value ?
+                std::is_const<std::remove_pointer_t<Dest>>::value : true, "Can't cast away const with saferAlias");
+  static_assert(std::is_reference<Source>::value && std::is_const<std::remove_reference_t<Source>>::value ?
+                std::is_const<std::remove_reference_t<Dest>>::value : true, "Can't cast away const with saferAlias");
+  static_assert(std::is_pointer<Source>::value && std::is_volatile<std::remove_pointer_t<Source>>::value ?
+                std::is_volatile<std::remove_pointer_t<Dest>>::value : true, "Can't cast away volatile with saferAlias");
+  static_assert(std::is_reference<Source>::value && std::is_volatile<std::remove_reference_t<Source>>::value ?
+                std::is_volatile<std::remove_reference_t<Dest>>::value : true, "Can't cast away volatile with saferAlias");
+
   std::memcpy(&dest, &source, sizeof(Dest));
 }
 
@@ -190,16 +193,19 @@ inline void saferAlias(Dest& dest, Source source) {
 template <typename Dest, typename Source>
 inline Dest saferAlias(Source source) {
   static_assert(sizeof(Dest) == sizeof(Source), "Sizes must be the same");
-  static_assert(std::is_pointer<Source>::value, "Source type must be a pointer");
-  static_assert(std::is_pointer<Dest>::value, "Dest type must be a pointer");
-  static_assert(std::is_const<std::remove_pointer_t<Source>>::value ?
-                    std::is_const<std::remove_pointer_t<Dest>>::value :
-                    true,
-                "Can't cast away const with saferAlias");
-  static_assert(std::is_volatile<std::remove_pointer_t<Source>>::value ?
-                    std::is_volatile<std::remove_pointer_t<Dest>>::value :
-                    true,
-                "Can't cast away volatile with saferAlias");
+  static_assert(std::is_pointer<Source>::value || std::is_reference<Source>::value, "Source type must be a pointer or reference");
+  static_assert(std::is_pointer<Dest>::value || std::is_reference<Source>::value, "Dest type must be a pointer or reference");
+
+  // Ensure const/volatile aren't casted away
+  static_assert(std::is_pointer<Source>::value && std::is_const<std::remove_pointer_t<Source>>::value ?
+          std::is_const<std::remove_pointer_t<Dest>>::value : true, "Can't cast away const with saferAlias");
+  static_assert(std::is_reference<Source>::value && std::is_const<std::remove_reference_t<Source>>::value ?
+                std::is_const<std::remove_reference_t<Dest>>::value : true, "Can't cast away const with saferAlias");
+  static_assert(std::is_pointer<Source>::value && std::is_volatile<std::remove_pointer_t<Source>>::value ?
+                std::is_volatile<std::remove_pointer_t<Dest>>::value : true, "Can't cast away volatile with saferAlias");
+  static_assert(std::is_reference<Source>::value && std::is_volatile<std::remove_reference_t<Source>>::value ?
+                std::is_volatile<std::remove_reference_t<Dest>>::value : true, "Can't cast away volatile with saferAlias");
+
   Dest dest;
   std::memcpy(&dest, &source, sizeof(Dest));
   return dest;

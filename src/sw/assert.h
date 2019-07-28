@@ -52,13 +52,15 @@ inline void unused(const T&) noexcept {}
 #  endif
 #endif
 
+#define SW_IGNORE_EXPRESSION(expr_) do { if (false && (expr_)) ::sw::nop(); } while (false)
+
 ////////////////////////////////////////////////////////////////////////////////
 /// SW_ASSERT is auto-enabled for debug builds while disabled for other builds.
 /// Override it by setting SW_ENABLE_ASSERTS as a compile def.
 #if SW_ENABLE_ASSERTS
 #  define SW_ASSERT(cond_) SW_ASSERT_ALWAYS(cond_)
 #else
-#  define SW_ASSERT(cond_) (::sw::nop())
+#  define SW_ASSERT(cond_) SW_IGNORE_EXPRESSION(cond_)
 #endif
 
 }  // namespace sw
