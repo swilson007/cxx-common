@@ -155,20 +155,24 @@ private:
 /// Includes invalid support and unset support, but you can just ignore what you don't need.
 ///
 /// Example: Declare as follows:
-///   class MyUint32 : public PodWrapper<u32> { using PodWrapper::PodWrapper; };
+///   class MyUint32 : public PodWrapperBase<u32> { using PodWrapperBase::PodWrapperBase; };
+///
+/// Note that doing a `using MyType = PodWrapperBase<...>` may not define a distinct class - all template
+/// args must be different for it to be unique. Thus, you either subclass it, or use the
+/// subclassing macro defined below: SW_DEFINE_POD_TYPE(MyUint32, u32, 0, 0)
 ///
 template <typename T, T kUnsetValue = 0, T kInvalidValue = 0>
-class PodWrapper {
+class PodWrapperBase {
 public:
   using ValueType = T;
 
   static constexpr T unsetValue() { return kUnsetValue; }
   static constexpr T invalidValue() { return kInvalidValue; }
 
-  constexpr PodWrapper() = default;
+  constexpr PodWrapperBase() = default;
 
   /// Purposefully non-explicit conversion for ease of use
-  constexpr PodWrapper(const T& v) : value(v) {}  // NOLINT
+  constexpr PodWrapperBase(const T& v) : value(v) {}  // NOLINT
 
   explicit operator bool() const = delete; ///> Prevent pain and suffering
 
@@ -184,15 +188,12 @@ public:
   bool isSet() const { return value != kUnsetValue; }
   bool isUnset() const { return value == kUnsetValue; }
 
-  bool equals(const PodWrapper& that) const { return value == that.value; }
-  bool lessThan(const PodWrapper& that) const { return value < that.value; }
-
-  friend std::ostream& operator<<(std::ostream& outs, const PodWrapper& u) {
+  friend std::ostream& operator<<(std::ostream& outs, const PodWrapperBase& u) {
     return outs << u.value;
   }
 
   struct Hasher {
-    size_t operator()(const PodWrapper& pw) const { return std::hash<T>()(pw.value); }
+    size_t operator()(const PodWrapperBase& pw) const { return std::hash<T>()(pw.value); }
   };
 
   // Allow direct public access
@@ -200,21 +201,27 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Defines a class that wraps a POD value. The class will be a distinct type
+/// Defines a distinct class that wraps a POD value. The class will include full
+/// comparison and equality operators, and increment/decrement operators
+/// ex: `SW_DEFINE_POD_TYPE(MyPodType, u32, 0, ~uint32(0));`
 #define SW_DEFINE_POD_TYPE(classname_, podType_, unsetValue_, invalidValue_)              \
-  struct classname_ : public ::sw::PodWrapper<podType_, unsetValue_, invalidValue_>,      \
+  struct classname_ : public ::sw::PodWrapperBase<podType_, unsetValue_, invalidValue_>,  \
                       public ::sw::EqualityMixin<classname_>,                             \
                       public ::sw::CompareMixin<classname_> {                             \
     classname_() = default;                                                               \
-    constexpr classname_(podType_ v) : PodWrapper(v) {}                                   \
+    constexpr classname_(podType_ v) : PodWrapperBase(v) {}                               \
     classname_(const classname_& key) = default;                                          \
     classname_& operator=(const classname_& key) = default;                               \
     static classname_ unset() { return classname_(unsetValue()); }                        \
     static classname_ invalid() { return classname_(invalidValue()); }                    \
     classname_& operator++() { ++value; return *this; }                                   \
     classname_ operator++(int) { auto tmp = *this; ++value; return tmp; }                 \
-  };                                                                                      \
-  static_assert(sizeof(classname_) == sizeof(podType_), "bad size")
+    classname_& operator--() { --value; return *this; }                                   \
+    classname_ operator--(int) { auto tmp = *this; --value; return tmp; }                 \
+    bool equals(const classname_& that) const { return value == that.value; }             \
+    bool lessThan(const classname_& that) const { return value < that.value; }            \
+};                                                                                        \
+static_assert(sizeof(classname_) == sizeof(podType_), "bad size")
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Operators for bitfields. Generally best to declare this just after the enum,

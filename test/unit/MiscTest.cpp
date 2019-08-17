@@ -34,6 +34,15 @@ SW_DEFINE_POD_TYPE(PodValueB, u32, ~0_u32, ~0_u32);
 TEST(MiscTest, podWrapperTest) {
   PodValueA a = 5;
   PodValueB b = 7;
+
+#if 0
+  // These should cause syntax errors
+  PodValueA ax;
+  ax = b;
+  u32 sum = a + 5;
+  u32 sum2 = a + b;
+#endif
+
   ASSERT_EQ(5, a);
   ASSERT_EQ(7, b);
   ASSERT_EQ(std::numeric_limits<u32>::max(), PodValueA::invalidValue());
@@ -46,6 +55,10 @@ TEST(MiscTest, podWrapperTest) {
   std::ostringstream outs;
   outs << "a=" << a << ", b=" << b;
   ASSERT_EQ("a=5, b=7", outs.str());
+
+  ASSERT_EQ(6, ++a);
+  ASSERT_EQ(6, a++);
+  ASSERT_EQ(7, a);
 }
 
 }  // namespace sw
