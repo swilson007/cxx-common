@@ -176,7 +176,7 @@ public:
 
   explicit operator bool() const = delete; ///> Prevent pain and suffering
 
-  constexpr explicit operator T&() { return value; }
+  explicit operator T&() { return value; }
   constexpr explicit operator const T&() const { return value; }
 
   void set(const T& v) { value = v; }
