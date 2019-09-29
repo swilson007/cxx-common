@@ -78,9 +78,7 @@ public:
   ScopeGuard(const ScopeGuard& that) = delete;
   ScopeGuard& operator=(const ScopeGuard& that) = delete;
 
-  ScopeGuard(ScopeGuard&& that) : func_(that.func_) {
-    execute_ = std::exchange(that.execute_, false);
-  }
+  ScopeGuard(ScopeGuard&& that) : func_(that.func_) { execute_ = std::exchange(that.execute_, false); }
 
   ScopeGuard& operator=(ScopeGuard&& that) {
     func_ = std::move(that.func_);
@@ -174,7 +172,7 @@ public:
   /// Purposefully non-explicit conversion for ease of use
   constexpr PodWrapperBase(const T& v) : value(v) {}  // NOLINT
 
-  explicit operator bool() const = delete; ///> Prevent pain and suffering
+  explicit operator bool() const = delete;  ///> Prevent pain and suffering
 
   explicit operator T&() { return value; }
   constexpr explicit operator const T&() const { return value; }
@@ -188,9 +186,7 @@ public:
   bool isSet() const { return value != kUnsetValue; }
   bool isUnset() const { return value == kUnsetValue; }
 
-  friend std::ostream& operator<<(std::ostream& outs, const PodWrapperBase& u) {
-    return outs << u.value;
-  }
+  friend std::ostream& operator<<(std::ostream& outs, const PodWrapperBase& u) { return outs << u.value; }
 
   struct Hasher {
     size_t operator()(const PodWrapperBase& pw) const { return std::hash<T>()(pw.value); }
@@ -204,24 +200,39 @@ public:
 /// Defines a distinct class that wraps a POD value. The class will include full
 /// comparison and equality operators, and increment/decrement operators
 /// ex: `SW_DEFINE_POD_TYPE(MyPodType, u32, 0, ~uint32(0));`
-#define SW_DEFINE_POD_TYPE(classname_, podType_, unsetValue_, invalidValue_)              \
-  struct classname_ : public ::sw::PodWrapperBase<podType_, unsetValue_, invalidValue_>,  \
-                      public ::sw::EqualityMixin<classname_>,                             \
-                      public ::sw::CompareMixin<classname_> {                             \
-    classname_() = default;                                                               \
-    constexpr classname_(podType_ v) : PodWrapperBase(v) {}                               \
-    classname_(const classname_& key) = default;                                          \
-    classname_& operator=(const classname_& key) = default;                               \
-    static classname_ unset() { return classname_(unsetValue()); }                        \
-    static classname_ invalid() { return classname_(invalidValue()); }                    \
-    classname_& operator++() { ++value; return *this; }                                   \
-    classname_ operator++(int) { auto tmp = *this; ++value; return tmp; }                 \
-    classname_& operator--() { --value; return *this; }                                   \
-    classname_ operator--(int) { auto tmp = *this; --value; return tmp; }                 \
-    bool equals(const classname_& that) const { return value == that.value; }             \
-    bool lessThan(const classname_& that) const { return value < that.value; }            \
-};                                                                                        \
-static_assert(sizeof(classname_) == sizeof(podType_), "bad size")
+#define SW_DEFINE_POD_TYPE(classname_, podType_, unsetValue_, invalidValue_)   \
+  struct classname_ :                                                          \
+      public ::sw::PodWrapperBase<podType_, unsetValue_, invalidValue_>,       \
+      public ::sw::EqualityMixin<classname_>,                                  \
+      public ::sw::CompareMixin<classname_> {                                  \
+    classname_() = default;                                                    \
+    constexpr classname_(podType_ v) : PodWrapperBase(v) {}                    \
+    classname_(const classname_& key) = default;                               \
+    classname_& operator=(const classname_& key) = default;                    \
+    static classname_ unset() { return classname_(unsetValue()); }             \
+    static classname_ invalid() { return classname_(invalidValue()); }         \
+    classname_& operator++() {                                                 \
+      ++value;                                                                 \
+      return *this;                                                            \
+    }                                                                          \
+    classname_ operator++(int) {                                               \
+      auto tmp = *this;                                                        \
+      ++value;                                                                 \
+      return tmp;                                                              \
+    }                                                                          \
+    classname_& operator--() {                                                 \
+      --value;                                                                 \
+      return *this;                                                            \
+    }                                                                          \
+    classname_ operator--(int) {                                               \
+      auto tmp = *this;                                                        \
+      --value;                                                                 \
+      return tmp;                                                              \
+    }                                                                          \
+    bool equals(const classname_& that) const { return value == that.value; }  \
+    bool lessThan(const classname_& that) const { return value < that.value; } \
+  };                                                                           \
+  static_assert(sizeof(classname_) == sizeof(podType_), "bad size")
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Operators for bitfields. Generally best to declare this just after the enum,
@@ -229,36 +240,28 @@ static_assert(sizeof(classname_) == sizeof(podType_), "bad size")
 ///
 /// The asPod() function is just less typing than the static_cast approach to get
 /// the enum out as the underlying integral (POD) type
-#define SW_DEFINE_ENUM_BITFIELD_OPERATORS(T)                                     \
-  static_assert(std::is_unsigned<std::underlying_type<T>::type>::value,           \
-                "Bitmask enums must use unsigned types");                         \
-  constexpr std::underlying_type<T>::type asPod(T enumValue) {                    \
-    return static_cast<std::underlying_type<T>::type>(enumValue);                 \
-  }                                                                               \
-  constexpr T operator~(T v) {                                                    \
-    return static_cast<T>(~asPod(v));                                             \
-  }                                                                               \
-  constexpr T operator|(T lhs, T rhs) {                                           \
-    return static_cast<T>(asPod(lhs) | asPod(rhs));                               \
-  }                                                                               \
-  constexpr T operator&(T lhs, T rhs) {                                           \
-    return static_cast<T>(asPod(lhs) & asPod(rhs));                               \
-  }                                                                               \
-  constexpr T operator^(T lhs, T rhs) {                                           \
-    return static_cast<T>(asPod(lhs) ^ asPod(rhs));                               \
-  }                                                                               \
-  inline T& operator|=(T& lhs, T rhs) {                                           \
-    lhs = static_cast<T>(asPod(lhs) | asPod(rhs));                                \
-    return lhs;                                                                   \
-  }                                                                               \
-  inline T& operator&=(T& lhs, T rhs) {                                           \
-    lhs = static_cast<T>(asPod(lhs) & asPod(rhs));                                \
-    return lhs;                                                                   \
-  }                                                                               \
-  inline T& operator^=(T& lhs, T rhs) {                                           \
-    lhs = static_cast<T>(asPod(lhs) ^ asPod(rhs));                                \
-    return lhs;                                                                   \
-  }                                                                               \
+#define SW_DEFINE_ENUM_BITFIELD_OPERATORS(T)                                              \
+  static_assert(std::is_unsigned<std::underlying_type<T>::type>::value,                   \
+                "Bitmask enums must use unsigned types");                                 \
+  constexpr std::underlying_type<T>::type asPod(T enumValue) {                            \
+    return static_cast<std::underlying_type<T>::type>(enumValue);                         \
+  }                                                                                       \
+  constexpr T operator~(T v) { return static_cast<T>(~asPod(v)); }                        \
+  constexpr T operator|(T lhs, T rhs) { return static_cast<T>(asPod(lhs) | asPod(rhs)); } \
+  constexpr T operator&(T lhs, T rhs) { return static_cast<T>(asPod(lhs) & asPod(rhs)); } \
+  constexpr T operator^(T lhs, T rhs) { return static_cast<T>(asPod(lhs) ^ asPod(rhs)); } \
+  inline T& operator|=(T& lhs, T rhs) {                                                   \
+    lhs = static_cast<T>(asPod(lhs) | asPod(rhs));                                        \
+    return lhs;                                                                           \
+  }                                                                                       \
+  inline T& operator&=(T& lhs, T rhs) {                                                   \
+    lhs = static_cast<T>(asPod(lhs) & asPod(rhs));                                        \
+    return lhs;                                                                           \
+  }                                                                                       \
+  inline T& operator^=(T& lhs, T rhs) {                                                   \
+    lhs = static_cast<T>(asPod(lhs) ^ asPod(rhs));                                        \
+    return lhs;                                                                           \
+  }                                                                                       \
   static_assert(true, "Put a semicolon after the macro definition!")
 
 };  // namespace sw
