@@ -58,11 +58,20 @@ inline std::string narrow(const std::wstring& wstr) {
   return converter.to_bytes(wstr);
 }
 
+////////////////////////////////////////////////////////////////////////////////
 /// From cppreference.com:
 ///   Like all other functions from <cctype>, the behavior of std::isalpha is undefined if the
 ///   argument's value is neither representable as unsigned char nor equal to EOF
 inline bool isalpha(char ch) {
   return std::isalpha(static_cast<unsigned char>(ch));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// From cppreference.com:
+///   Like all other functions from <cctype>, the behavior of std::isalpha is undefined if the
+///   argument's value is neither representable as unsigned char nor equal to EOF
+inline bool isalnum(char ch) {
+  return std::isalnum(static_cast<unsigned char>(ch));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "assert.h"
+#include "defines.h"
 #include "strings.h"
 #include "types.h"
 
@@ -103,6 +104,15 @@ std::tuple<sizex, sizex> findFilenamePos(const char* str, sizex endPos);
 /// The API will stay as close to std::filesystem::path as possible.
 class PosixPath {
 public:
+  // Setup the native OS string type
+#if SW_POSIX
+  using native_string_type = std::string;
+#elif SW_WINDOWS
+  using native_string_type = std::wstring;
+#else
+#  error "Impliment for this OS"
+#endif
+
   using string_type = std::string;
   using value_type = char;
   using iterator = path_detail::PathIterator<false>;
@@ -348,7 +358,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Returns the parent-path.
-  PosixPath parent_path() const { return doParentPath<std::string>(); }
+  PosixPath parent_path() const { return PosixPath{doParentPath<std::string>(), _normalized, _absolute}; }
   StringView parent_path_view() const { return doParentPath<StringView>(); }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -380,6 +390,8 @@ public:
   const std::string& u8string() const { return _pstr; }
   const std::string& u8() const { return _pstr; }
   operator string_type() const { return _pstr; }
+
+  native_string_type native() const;
 
   ////////////////////////////////////////////////////////////////////////////////
   void swap(PosixPath& that) noexcept {
@@ -439,6 +451,20 @@ public:
   }
 
 private:
+  PosixPath(const StringView& sv, bool norm, bool abs) :
+      _pstr(sv.data(), sv.size()),
+      _normalized(norm),
+      _absolute(abs) {}
+  PosixPath(const StringWrapper& sv, bool norm, bool abs) :
+      _pstr(sv.data(), sv.size()),
+      _normalized(norm),
+      _absolute(abs) {}
+  PosixPath(const std::string& str, bool norm, bool abs) : _pstr(str), _normalized(norm), _absolute(abs) {}
+  PosixPath(std::string&& str, bool norm, bool abs) :
+      _pstr(std::move(str)),
+      _normalized(norm),
+      _absolute(abs) {}
+
   PosixPath& doConcat(const char* str, sizex size) {
     _pstr.append(str, size);
     _normalized = false;
@@ -489,6 +515,9 @@ private:
       _pstr += kSep;
     }
     _pstr.append(that._pstr.data(), that._pstr.size());
+
+    // We can no longer ensure normalization. Absolute stays though
+    _normalized = false;
 
     return *this;
   }
@@ -564,7 +593,7 @@ struct PosixPathHasher {
 ///
 /// Note that this function is available on all platforms. On Posix systems, it will
 /// use utf-32 wchars.
-std::wstring toWin32(const PosixPath& path) {
+inline std::wstring toWin32(const PosixPath& path) {
   const auto& u8 = path.u8();
   const auto str = u8.data();
   const auto len = u8.size();
@@ -589,7 +618,7 @@ std::wstring toWin32(const PosixPath& path) {
 ///
 /// Note that this function is available on all platforms. On Posix systems, it will
 /// use utf-32 wchars.
-PosixPath fromWin32(const std::wstring& wstr) {
+inline PosixPath fromWin32(const std::wstring& wstr) {
   // First convert it to UTF8 so we can do our work
   std::string str = narrow(wstr);
 
@@ -609,14 +638,31 @@ PosixPath fromWin32(const std::wstring& wstr) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Calls to convert to OS path type. These have per-OS type signatures
+#if SW_POSIX
+inline std::string toOsNative(const PosixPath& path) {
+  return path.u8();
+}
+inline PosixPath fromOsNative(const std::string& pathStr) {
+  return PosixPath(pathStr);
+}
+#elif SW_WINDOWS
+inline std::wstring toOsNative(const PosixPath& path) {
+  return toWin32(path);
+}
+inline PosixPath fromOsNative(const std::wstring& pathStr) {
+  return fromWin32(pathStr);
+}
+#else
+#  error "Impliment for this OS"
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 /// Returns the canonical version of the given path. Canonical is absolute and normalized. Note that
 /// this is "weakly canonical" since it's only lexically analyzed.
 /// @param cwd The current-working-dir which must be absolute. Used for absoluting a relative path.
 inline PosixPath PosixPath::doMakeCanonical(const PosixPath& p, const PosixPath& cwd) {
   SW_ASSERT(cwd.is_absolute() == true);
-
-  // If the input is ".", don't append it, otherwise we'll end up with "/x/y/." instead of "/x/y"
-  //  const auto abs = p.is_absolute() ? p : ((p == ".") ? cwd : cwd / p);
 
   const auto abs = p.is_absolute() ? p : cwd / p;
   auto canon = abs.normalized();
@@ -667,6 +713,8 @@ StringClass PosixPath::doFilename() const {
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns the parent-path
+/// SCW: One of my least favorite functions I've written. A plethora os special cases.
+///  And really, this whole class...
 template <typename StringClass>
 StringClass PosixPath::doParentPath() const {
   const auto& size = _pstr.size();
@@ -675,19 +723,39 @@ StringClass PosixPath::doParentPath() const {
     return StringClass(path_detail::kEmptyString, 0);  // NOLINT Yes creating an empty
   }
 
+  // If the path ends with a separator, then we can remove it and call what's left a parent.
+  // Except, handle multiple seps by removing all. So: '/x/' -> '/x', '/x///' -> '/x'
+  const auto endIdx = size - 1;
+  if (str[endIdx] == kSep) {
+    auto sepIdx = endIdx;
+    while (sepIdx-- > 0) {
+      if (str[sepIdx] != kSep) {
+        return StringClass(str, sepIdx + 1);
+      }
+    }
+    return StringClass(path_detail::kEmptyString, 0);
+  }
+
+  // From here on, we've eliminated all paths that end with a separator.  The end should
+  // thus be either a filename or a root-name.
+
   // Use the filename position and adjust appropriately
   const auto& fileAndRootPos = path_detail::findFilenamePos(str, size);
   const auto& fpos = std::get<0>(fileAndRootPos);
   const auto& rootSepPos = std::get<1>(fileAndRootPos);
-  // If the path has no parent, deal with that also
+  // If it's a file with no parent, return ""
   if (fpos == 0) {
     return StringClass(path_detail::kEmptyString, 0);  // NOLINT Yes creating an empty
   }
+
+  // If there is no file, it must be a root-name in which case we return empty also
   if (fpos == kNoPos) {
-    return StringClass(str, size);  // No filename, everything else must be parent
+    // Root-name means we shouldn't have found a root-separator either
+    SW_ASSERT(rootSepPos == kNoPos);
+    return StringClass(path_detail::kEmptyString, 0);  // NOLINT Yes creating an empty
   }
 
-  // Handle the fp being a separator. We always take what's on the left, regardless of root or not
+  // From here, we have a filename and a position. The position can be a separator before the filename
   if (str[fpos] == kSep) {
     return StringClass(str, fpos);
   }
@@ -1172,7 +1240,7 @@ private:
 inline bool isDriveRoot(const char* str, sizex endPos) {
   // First check for '//x:'
   const auto isDriveRoot = (endPos >= kDriveRootPos) && str[3] == kDriveChar && (str[0] == kPathSep) &&
-                           (str[1] == kPathSep) && std::islower(str[2]);
+                           (str[1] == kPathSep) && sw::isalpha(str[2]);
   return isDriveRoot;
 }
 
@@ -1180,8 +1248,7 @@ inline bool isDriveRoot(const char* str, sizex endPos) {
 /// Determine if the string is a network style root directory
 inline bool isNetworkRoot(const char* str, sizex endPos) {
   // Check for '//x', but eliminate drive root `//x:`
-  const auto isNetRoot =
-      (endPos >= 3) && (str[0] == kPathSep) && (str[1] == kPathSep) && std::isalnum(str[2]);
+  const auto isNetRoot = (endPos >= 3) && (str[0] == kPathSep) && (str[1] == kPathSep) && sw::isalnum(str[2]);
   const auto isNetRootAndNotDriveRoot = isNetRoot && !((endPos >= kDriveRootPos) && (str[3] == kDriveChar));
   return isNetRootAndNotDriveRoot;
 }
@@ -1464,7 +1531,7 @@ private:
 /// 6 If there is root-directory, remove all dot-dots and any directory-separators immediately following them.
 /// 7 If the last filename is dot-dot, remove any trailing directory-separator.
 /// 8 If the path is empty, add a dot (normal form of ./ is .)
-PosixPath PosixPath::lexically_normal() const {
+inline PosixPath PosixPath::lexically_normal() const {
   namespace pd = path_detail;
 
   // Handle #1
@@ -1546,18 +1613,29 @@ PosixPath PosixPath::lexically_normal() const {
     return pd::kDotString;
   }
 
+  // If the last thing we saw in the path was '.', then we need to check for the form
+  // of "/x/." which should norm to "/x/". Without this check we get "/x".
+  if (lastSection == pd::PathSection::Dot && segments.back().section != pd::PathSection::RootDir) {
+    concatFinalSep = true;
+  }
+
   // Guess the size to limit the result allocations. Should always be >= actual. Include space
   // for separators by adding segments.size()
-  const auto sizeGuess = segments.size() + std::accumulate(segments.begin(), segments.end(), 0_z,
-                                                           [](sizex total, const auto& segment) {
-                                                             return total + segment.str.size();
-                                                           });
+  const auto sizeGuess =
+      segments.size() + (concatFinalSep ? 1 : 0) +
+      std::accumulate(segments.begin(), segments.end(), 0_z,
+                      [](sizex total, const auto& segment) { return total + segment.str.size(); });
 
   // Now construct the result via the final stack
   PosixPath result;
   result._pstr.reserve(sizeGuess);
   for (const auto& segment : segments) {
-    result /= segment.str;
+    if (segment.section == pd::PathSection::RootDir) {
+      // Can't use /= for root-dir separator - it will wipe out a dir-name if we had one since it's abs
+      result += segment.str;
+    } else {
+      result /= segment.str;
+    }
   }
 
   // And the final sep as needed
@@ -1589,6 +1667,11 @@ inline PosixPath::iterator PosixPath::end() {
 ////////////////////////////////////////////////////////////////////////////////
 inline PosixPath::const_iterator PosixPath::cend() const {
   return const_iterator(*this, kNoPos);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+inline PosixPath::native_string_type PosixPath::native() const {
+  return toOsNative(*this);
 }
 
 }  // namespace sw

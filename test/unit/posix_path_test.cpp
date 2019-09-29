@@ -21,11 +21,13 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <unordered_map>
 
 namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(PosixPathTest, rootChecks) {
+  ASSERT_TRUE(path_detail::isDriveRoot("//C:", 4));
   ASSERT_TRUE(path_detail::isDriveRoot("//c:", 4));
   ASSERT_TRUE(path_detail::isDriveRoot("//c:/", 5));
   ASSERT_TRUE(path_detail::isDriveRoot("//c:/foobar", 11));
@@ -158,14 +160,18 @@ TEST(PosixPathTest, parent) {
   ASSERT_EQ("/foo", PosixPath("/foo/").parent_path());
   ASSERT_EQ("/foo", PosixPath("/foo/.").parent_path());
   ASSERT_EQ("", PosixPath("/").parent_path());
+  ASSERT_EQ("/foo", PosixPath("/foo/").parent_path());
+  ASSERT_EQ("/foo", PosixPath("/foo////").parent_path());
   // Drive roots
-  ASSERT_EQ("//f:", PosixPath("//f:/").parent_path());
+  ASSERT_EQ("//f:/bar", PosixPath("//f:/bar/").parent_path());
   ASSERT_EQ("//f:/", PosixPath("//f:/bar").parent_path());
-  ASSERT_EQ("//f:", PosixPath("//f:").parent_path());
+  ASSERT_EQ("//f:", PosixPath("//f:/").parent_path());
+  ASSERT_EQ("", PosixPath("//f:").parent_path());
+  ASSERT_EQ("", PosixPath("").parent_path());
   // Net roots
-  ASSERT_EQ("//blah", PosixPath("//blah").parent_path());
-  ASSERT_EQ("//blah", PosixPath("//blah/").parent_path());
   ASSERT_EQ("//blah/", PosixPath("//blah/foo").parent_path());
+  ASSERT_EQ("//blah", PosixPath("//blah/").parent_path());
+  ASSERT_EQ("", PosixPath("//blah").parent_path());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -333,9 +339,16 @@ TEST(PosixPathTest, lexicallyNormal) {
   ASSERT_EQ("", PosixPath("").lexically_normal());
   ASSERT_EQ(".", PosixPath(".").lexically_normal());
   ASSERT_EQ(".", PosixPath("./").lexically_normal());
+  ASSERT_EQ("/", PosixPath("/").lexically_normal());
+  ASSERT_EQ("/", PosixPath("/.").lexically_normal());
+  ASSERT_EQ("/foo/bar", PosixPath("/foo/bar").lexically_normal());
   ASSERT_EQ("/foo/bar/", PosixPath("/foo/bar/").lexically_normal());
+  ASSERT_EQ("/foo/bar/", PosixPath("/foo/bar/.").lexically_normal());
   ASSERT_EQ("/foo/foo", PosixPath("/foo/bar/../bar/.././foo").lexically_normal());
   ASSERT_EQ("/foo/bar/foo", PosixPath("/foo/bar/../bar/../bar/foo").lexically_normal());
+
+  ASSERT_EQ("//C:/bar/foo", PosixPath("//C:/bar/foo").lexically_normal());
+  ASSERT_EQ("//hello/bar/foo", PosixPath("//hello/bar/foo").lexically_normal());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -379,4 +392,15 @@ TEST(PosixPathTest, windowsConversion) {
   ASSERT_EQ("//net.name.lan/foo/bar", fromWin32(L"\\\\net.name.lan\\foo\\bar"));
 }
 
-}  // namespace ts
+////////////////////////////////////////////////////////////////////////////////
+TEST(PosixPathTest, osConvert) {
+#if SW_POSIX
+  ASSERT_EQ(PosixPath("/foo/bar"), fromOsNative("/foo/bar"));
+  ASSERT_EQ("/foo/bar", PosixPath("/foo/bar").native());
+#elif SW_WINDOWS
+  ASSERT_EQ(PosixPath("/foo/bar"), fromOsNative(L"\\foo\\bar"));
+  ASSERT_EQ(L"/foo/bar", PosixPath("/foo/bar").native());
+#endif
+}
+
+}  // namespace sw
