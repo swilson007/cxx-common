@@ -55,7 +55,7 @@ if (MSVC)
 
 elseif (MACOS)
     list(APPEND StandardCxxDefines
-      -DSW_OS=MACOS -DSW_UNIX=1 -DSW_POSIX -DSW_MACOS=1)
+      -DSW_OS=MACOS -DSW_UNIX=1 -DSW_POSIX=1 -DSW_MACOS=1)
 
     # Not sure the "right" way to do this
     set(CMAKE_CXX_FLAGS_DEBUG "-g -DSW_DEBUG=1")
@@ -72,7 +72,7 @@ elseif (MACOS)
 
 elseif (LINUX)
     list(APPEND StandardCxxDefines
-      -DSW_OS=LINUX -DSW_UNIX=1 -DSW_POSIX -DSW_LINUX=1)
+      -DSW_OS=LINUX -DSW_UNIX=1 -DSW_POSIX=1 -DSW_LINUX=1)
 
     set(CMAKE_CXX_FLAGS_DEBUG "-g -DSW_DEBUG=1")
     set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DSW_RELEASE=1")

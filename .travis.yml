@@ -5,8 +5,9 @@ os: osx
 compiler:
     - clang
 
-script: 
+script:
     - mkdir -p build/macos
+    - ./run-conan.sh
     - cd build/macos
     - cmake ../.. -DCMAKE_BUILD_TYPE=Release
     - cmake --build .
