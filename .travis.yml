@@ -3,14 +3,19 @@ language: cpp
 os: osx
 
 compiler:
-    - clang
+  - clang
+
+install:
+# Install conan and detect arch/compiler/etc.
+  - pip install conan
+  - conan user
 
 script:
-    - mkdir -p build/macos
-    - ./run-conan.sh
-    - cd build/macos
-    - cmake ../.. -DCMAKE_BUILD_TYPE=Release
-    - cmake --build .
+  - mkdir -p build/macos
+  - ./run-conan.sh
+  - cd build/macos
+  - cmake ../.. -DCMAKE_BUILD_TYPE=Release
+  - cmake --build .
 
 notifications:
-    email: false
+  email: false
