@@ -41,6 +41,17 @@
 
 namespace sw {
 
+/// Using an #ifdef to determine the type of normalization used by the PosixPath
+/// normalize(), normalized(), and absonormed related calls.
+/// SCW: Was going to do this via template approach, but it opened up a can of
+/// worms that I don't have time for. Most likely, I'll want one form or the other
+/// for the application as a whole
+#if SW_POSIX_PATH_USE_FULL_NORMALIZATION
+static constexpr bool kPosixPathUseFullNormalization = true;
+#else
+static constexpr bool kPosixPathUseFullNormalization = false;
+#endif
+
 /// Private helpers
 namespace path_detail {
 
@@ -403,6 +414,9 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   PosixPath lexically_normal() const;
 
+  ////////////////////////////////////////////////////////////////////////////////
+  PosixPath lexically_full_normal() const;
+
 #if 0
   PosixPath lexically_relative(const PosixPath& base) const {
     return PosixPath(_path.lexically_relative(base._path), false, false);
@@ -451,6 +465,14 @@ public:
   }
 
 private:
+  PosixPath doDefaultLexicalNormalization() const {
+    if (kPosixPathUseFullNormalization) {
+      return lexically_full_normal();
+    } else {
+      return lexically_normal();
+    }
+  }
+
   PosixPath(const StringView& sv, bool norm, bool abs) :
       _pstr(sv.data(), sv.size()),
       _normalized(norm),
@@ -673,7 +695,7 @@ inline PosixPath PosixPath::doMakeCanonical(const PosixPath& p, const PosixPath&
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns the normalized version of the given path. Normalized has no fluff
 inline PosixPath PosixPath::doMakeNormalized(const PosixPath& p) {
-  auto norm = p.lexically_normal();
+  auto norm = p.doDefaultLexicalNormalization();
   norm._normalized = true;
   norm._absolute = p._absolute;
   return norm;
@@ -1649,6 +1671,119 @@ inline PosixPath PosixPath::lexically_normal() const {
   return result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// Based on the std::filesystem::path::lexically_normal algorithm, with the following
+/// modifications:
+///
+/// * All ending separators will be removed. This should more consistency in the output in that
+///   the different versions of the same path will always normalize to the same thing. Thus,
+///   the following normalizations will occur:
+///    '/x/y/.' -> '/x/y'
+///    '/x/y/' -> '/x/y'
+///    '/x/y' -> '/x/y'
+///
+/// * If a path is empty after being normalized, it will be returned as ""
+///    '.' -> ''
+///    './' -> ''
+///    './///' -> ''
+/// @return
+inline PosixPath PosixPath::lexically_full_normal() const {
+  namespace pd = path_detail;
+
+  // Handle #1
+  if (empty()) {
+    return *this;
+  }
+
+  // This will essentially be a stack form of the path. We'll use the iterator to build it
+  std::vector<pd::PathSegment> segments;
+  segments.reserve(32);
+
+  /// #2 and #3 happens automatically from iterator
+  /// Gets the previous segment. Returns End if there is no previous segment
+  const auto& prevSegment = [&]() {
+    const auto& result = segments.empty() ? pd::PathSegmentIterator::endSegment() :
+                                            (segments.size() > 1 ? segments[segments.size() - 2] :
+                                                                   pd::PathSegmentIterator::endSegment());
+    return result;
+  };
+
+  /// Iterate and process
+  pd::PathSegmentIterator iter(*this);
+  pd::PathSection lastSection = pd::PathSection::None;
+  for (auto segment = iter.begin(); segment != iter.end(); segment = iter.next()) {
+    switch (segment.section) {
+    case pd::PathSection::Dot:
+      break;  // #4. Just ignore any dot we find
+
+      // Dotdot has a various implications.
+    case pd::PathSection::DotDot: {
+      // #5. If we have a preceeding filename, we can get rid of it. Otherwise we must add the ".."
+      // #6 If there is root-directory, remove all dot-dots ... immediately following them.
+      switch (prevSegment().section) {
+      case pd::PathSection::Filename:
+        segments.pop_back();
+        break;
+      case pd::PathSection::RootDir:
+        break;  // Don't add the ".." if it's preceeded by the root dir
+      default:
+        segments.push_back(segment);
+      }
+      break;
+    }
+
+    case pd::PathSection::RootDir:
+    case pd::PathSection::RootName:
+    case pd::PathSection::Filename: {
+      segments.push_back(segment);
+      break;
+    }
+
+    case pd::PathSection::FinalSep: {
+      break;
+    }
+
+      // None of these should occur
+    case pd::PathSection::Sep:
+    case pd::PathSection::None:
+    case pd::PathSection::End: {
+      SW_ASSERT(false);
+      break;
+    }
+    }
+
+    lastSection = segment.section;
+  }
+
+  // Don't turn "" into a dot
+  if (segments.empty()) {
+    return PosixPath{};
+  };
+
+  // Guess the size to limit the result allocations. Should always be >= actual. Include space
+  // for separators by adding segments.size()
+  const auto sizeGuess =
+      segments.size() +
+      std::accumulate(segments.begin(), segments.end(), 0_z,
+                      [](sizex total, const auto& segment) { return total + segment.str.size(); });
+
+  // Now construct the result via the final stack
+  PosixPath result;
+  result._pstr.reserve(sizeGuess);
+  for (const auto& segment : segments) {
+    if (segment.section == pd::PathSection::RootDir) {
+      // Can't use /= for root-dir separator - it will wipe out a dir-name if we had one since it's abs
+      result += segment.str;
+    } else {
+      result /= segment.str;
+    }
+  }
+
+  // This is not a critical issue - just adjust the sizeGuess if this is ever triggered
+  SW_ASSERT(sizeGuess >= result._pstr.size());
+
+  return result;
+}
 ////////////////////////////////////////////////////////////////////////////////
 inline PosixPath::iterator PosixPath::begin() {
   return iterator(*this, empty() ? kNoPos : 0);

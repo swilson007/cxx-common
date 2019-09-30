@@ -349,6 +349,25 @@ TEST(PosixPathTest, lexicallyNormal) {
 
   ASSERT_EQ("//C:/bar/foo", PosixPath("//C:/bar/foo").lexically_normal());
   ASSERT_EQ("//hello/bar/foo", PosixPath("//hello/bar/foo").lexically_normal());
+
+  ASSERT_EQ("foo", PosixPath("./foo").lexically_full_normal());
+  ASSERT_EQ("foo", PosixPath("././foo").lexically_full_normal());
+  ASSERT_EQ("foo", PosixPath("foo/").lexically_full_normal());
+  ASSERT_EQ("foo", PosixPath("foo//").lexically_full_normal());
+  ASSERT_EQ("", PosixPath("./.").lexically_full_normal());
+  ASSERT_EQ("", PosixPath("././").lexically_full_normal());
+  ASSERT_EQ("", PosixPath("").lexically_full_normal());
+  ASSERT_EQ("", PosixPath(".").lexically_full_normal());
+  ASSERT_EQ("", PosixPath("./").lexically_full_normal());
+  ASSERT_EQ("/", PosixPath("/").lexically_full_normal());
+  ASSERT_EQ("/", PosixPath("/.").lexically_full_normal());
+  ASSERT_EQ("/foo/bar", PosixPath("/foo/bar").lexically_full_normal());
+  ASSERT_EQ("/foo/bar", PosixPath("/foo/bar/").lexically_full_normal());
+  ASSERT_EQ("/foo/bar", PosixPath("/foo/bar/.").lexically_full_normal());
+  ASSERT_EQ("/foo/foo", PosixPath("/foo/bar/../bar/.././foo").lexically_full_normal());
+  ASSERT_EQ("/foo/bar/foo", PosixPath("/foo/bar/../bar/../bar/foo").lexically_full_normal());
+  ASSERT_EQ("//C:/bar/foo", PosixPath("//C:/bar/foo/").lexically_full_normal());
+  ASSERT_EQ("//hello/bar/foo", PosixPath("//hello/bar/foo/").lexically_full_normal());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
