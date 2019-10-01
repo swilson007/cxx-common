@@ -176,12 +176,36 @@ public:
   const_iterator cend() const;
 
   ////////////////////////////////////////////////////////////////////////////////
+  PosixPath& absolutize(const PosixPath& cwd) {
+    if (!is_absolute()) {
+      *this = doMakeAbsolute(*this, cwd);
+    }
+    return *this;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  PosixPath absolute(const PosixPath& cwd) const {
+    const auto result = is_absolute() ? *this : doMakeAbsolute(*this, cwd);
+    return result;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
   PosixPath& normalize() {
     if (!is_normalized()) {
       auto normed = normalized();
       *this = std::move(normed);
     }
     return *this;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  /// Returns the normalized version of the given path. Normalized has no fluff
+  PosixPath normalized() const {
+    if (is_normalized()) {
+      return *this;
+    }
+
+    return doMakeNormalized(*this);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -202,16 +226,6 @@ public:
     }
 
     return doMakeCanonical(*this, cwd);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// Returns the normalized version of the given path. Normalized has no fluff
-  PosixPath normalized() const {
-    if (is_normalized()) {
-      return *this;
-    }
-
-    return doMakeNormalized(*this);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -506,6 +520,9 @@ private:
   /// Determine if this path is absolute
   bool doIsRelative() const { return !doIsAbsolute(); }
 
+  /// Returns the absolute version of the given path.
+  static inline PosixPath doMakeAbsolute(const PosixPath& p, const PosixPath& cwd);
+
   /// Returns the canonical version of the given path. Canonical is absolute and normalized
   static inline PosixPath doMakeCanonical(const PosixPath& p, const PosixPath& cwd);
 
@@ -521,6 +538,10 @@ private:
     // Quick out for empty path
     if (that.empty()) {
       _pstr += kSep;
+      if (kPosixPathUseFullNormalization) {
+        // For posix full norm, trailing sep means we're not normalized anymore
+        _normalized = false;
+      }
       return *this;
     }
 
@@ -678,6 +699,19 @@ inline PosixPath fromOsNative(const std::wstring& pathStr) {
 #else
 #  error "Impliment for this OS"
 #endif
+
+////////////////////////////////////////////////////////////////////////////////
+/// Returns the absolute version of the given path. The passed CWD must be absolute,
+/// and the given path will be treated as if relative to the CWD.
+///
+/// @param cwd The current-working-dir which must be absolute.
+inline PosixPath PosixPath::doMakeAbsolute(const PosixPath& p, const PosixPath& cwd) {
+  SW_ASSERT(cwd.is_absolute());
+
+  auto abs = p.is_absolute() ? p : cwd / p;
+  abs._absolute = true;
+  return abs;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Returns the canonical version of the given path. Canonical is absolute and normalized. Note that
@@ -1762,10 +1796,10 @@ inline PosixPath PosixPath::lexically_full_normal() const {
 
   // Guess the size to limit the result allocations. Should always be >= actual. Include space
   // for separators by adding segments.size()
-  const auto sizeGuess =
-      segments.size() +
-      std::accumulate(segments.begin(), segments.end(), 0_z,
-                      [](sizex total, const auto& segment) { return total + segment.str.size(); });
+  const auto sizeGuess = segments.size() + std::accumulate(segments.begin(), segments.end(), 0_z,
+                                                           [](sizex total, const auto& segment) {
+                                                             return total + segment.str.size();
+                                                           });
 
   // Now construct the result via the final stack
   PosixPath result;

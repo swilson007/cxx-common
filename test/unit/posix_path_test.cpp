@@ -26,6 +26,13 @@
 namespace sw {
 
 ////////////////////////////////////////////////////////////////////////////////
+TEST(PosixPathTest, construction) {
+  const StringView sv = "/foobar";
+  PosixPath p = PosixPath(sv);
+  ASSERT_TRUE(p.u8() == sv);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 TEST(PosixPathTest, rootChecks) {
   ASSERT_TRUE(path_detail::isDriveRoot("//C:", 4));
   ASSERT_TRUE(path_detail::isDriveRoot("//c:", 4));
