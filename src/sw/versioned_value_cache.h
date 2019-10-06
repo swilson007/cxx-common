@@ -108,7 +108,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Create a versioned value cache, giving it the mutex to use with accessing value copies
-  VersionedValueCache(std::mutex& mutex) : _mutex(&mutex) {}
+  VersionedValueCache(Mutex& mutex) : _mutex(&mutex) {}
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Sets the new main item. This will signify a new version and clear any cached copies

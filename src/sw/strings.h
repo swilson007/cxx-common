@@ -23,6 +23,7 @@
 #include "fixed_width_int_literals.h"
 #include "misc.h"
 #include "types.h"
+#include "lazy.h"
 
 #include <codecvt>
 #include <cstring>
@@ -209,7 +210,7 @@ private:
 
   // Size is lazy because typical usage might be to take a const char* and just pass it to a
   // function, never using the size of the string.
-  LazyValue<sizex, ~0_z> size_;
+  LazyPodValue<sizex, ~0_z> size_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

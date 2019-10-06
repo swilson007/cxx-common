@@ -105,50 +105,6 @@ ScopeGuard<Func> makeScopeGuard(Func&& f) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Wraps a value that is lazy-evaluated (once) and consumes no extra space. This
-/// requires the value has an "invalid value" that will determine if it has been
-/// evaluated or not.
-template <typename T, T kInvalidValue>
-class LazyValue {
-public:
-  explicit LazyValue(const T& value = kInvalidValue) noexcept : mValue(value) {}
-
-  LazyValue(const LazyValue&) = default;
-  LazyValue& operator=(const LazyValue&) = default;
-  LazyValue(LazyValue&&) noexcept = default;
-  LazyValue& operator=(LazyValue&&) noexcept = default;
-  ~LazyValue() = default;
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// If the value is kInvalidValue, then the value will first be set to the return
-  /// value of initFunc() then returned.  Otherwise, the value is returned.
-  template <typename InitFunc>
-  inline T& get(const InitFunc& initFunc) {
-    return doGet(initFunc);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  template <typename InitFunc>
-  inline const T& get(const InitFunc& initFunc) const {
-    return doGet(initFunc);
-  }
-
-private:
-  ////////////////////////////////////////////////////////////////////////////////
-  template <typename InitFunc>
-  inline T& doGet(const InitFunc& initFunc) const {
-    if (mValue == kInvalidValue) {
-      mValue = initFunc();
-      SW_ASSERT(mValue != kInvalidValue);  // Don't set the value to the invalid value ever (I hope)
-    }
-    return mValue;
-  }
-
-  // Allow const style semantics via mutable
-  mutable T mValue;
-};
-
-////////////////////////////////////////////////////////////////////////////////
 /// Wrapper template to make POD types into distinct types.
 /// Includes invalid support and unset support, but you can just ignore what you don't need.
 ///
