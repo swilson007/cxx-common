@@ -16,9 +16,10 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <gtest/gtest.h>
 #include <sw/hi_res_timer.h>
 #include <sw/vector.h>
+
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <random>
@@ -30,8 +31,8 @@ namespace sw {
 struct TrackedItem {
   ~TrackedItem() { --sItems; }
   TrackedItem() { ++sItems; }
-  TrackedItem(const TrackedItem& that) { ++sItems; }
-  TrackedItem(TrackedItem&& that) { ++sItems; }
+  TrackedItem(const TrackedItem&) { ++sItems; }
+  TrackedItem(TrackedItem&&) { ++sItems; }
 
   static int sItems;
 };
@@ -125,7 +126,8 @@ TEST(VectorTest, testIters) {
     Vector<TrackedItem> vec;
     vec.resize(10, TrackedItem());
     size_t count = 0;
-    for (const auto& TrackedItem : vec) {
+    for (const auto& trackedItem : vec) {
+      (void)trackedItem;
       ++count;
     }
     ASSERT_EQ(10u, count);
@@ -292,8 +294,7 @@ TEST(VectorTest, nonTrivialVecPerf) {
       auto elapsed = hrt.elapsedMs();
       std::cout << "std::vector=" << elapsed.count() << "ms count=" << count << std::endl;
       std::cout << " ctors=" << NonTrivialFoo::sCtors << ", copies=" << NonTrivialFoo::sCopies
-                << ", moves=" << NonTrivialFoo::sMoves << ", dtors=" << NonTrivialFoo::sDtors
-                << std::endl;
+                << ", moves=" << NonTrivialFoo::sMoves << ", dtors=" << NonTrivialFoo::sDtors << std::endl;
       NonTrivialFoo::sCtors = 0;
       NonTrivialFoo::sDtors = 0;
       NonTrivialFoo::sCopies = 0;
@@ -308,8 +309,7 @@ TEST(VectorTest, nonTrivialVecPerf) {
       auto elapsed = hrt.elapsedMs();
       std::cout << "sw::Vector=" << elapsed.count() << "ms count=" << count << std::endl;
       std::cout << " ctors=" << NonTrivialFoo::sCtors << ", copies=" << NonTrivialFoo::sCopies
-                << ", moves=" << NonTrivialFoo::sMoves << ", dtors=" << NonTrivialFoo::sDtors
-                << std::endl;
+                << ", moves=" << NonTrivialFoo::sMoves << ", dtors=" << NonTrivialFoo::sDtors << std::endl;
       NonTrivialFoo::sCtors = 0;
       NonTrivialFoo::sDtors = 0;
       NonTrivialFoo::sCopies = 0;

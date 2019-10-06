@@ -31,7 +31,6 @@ TEST(PagedBufferTest, basicTest) {
   auto buffer = PagedBuffer<4>(0);
   ASSERT_EQ(buffer.size(), 0u);
   const std::array<byte, 1024> sourceBuffer = {{0, 1, 2, 3, 4, 5}};
-  sizex pos = 0;
   buffer.append(sourceBuffer.data(), 6);
   ASSERT_EQ(buffer.size(), 6u);
   ASSERT_TRUE(buffer.capacity() > buffer.size());

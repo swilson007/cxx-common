@@ -1320,7 +1320,7 @@ inline bool hasRootName(const char* str, sizex endPos) {
 /// @return First character of the extension, or kNoPos
 inline sizex findExtensionPos(const char* str, sizex endPos) {
   if (endPos == 0) {
-    kNoPos;
+    return kNoPos;
   }
 
   // Backup until we find a dot or a /. Deal with it once we've got those

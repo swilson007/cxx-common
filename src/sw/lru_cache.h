@@ -389,8 +389,8 @@ private:
       --iter;
       const auto& key = iter.key();
       const auto& value = iter.value();
-      list_.emplace_front(iter.key(), iter.value());
-      map_.emplace(iter.key(), list_.begin());
+      list_.emplace_front(key, value);
+      map_.emplace(key, list_.begin());
     } while (iter != cache.cbeginOrdered());
   }
 

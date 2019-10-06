@@ -66,7 +66,9 @@ elseif (MACOS)
         -pedantic
         -Werror -Wall -Wextra -Wbind-to-temporary-copy -Wswitch -Warray-bounds -Wconversion -Wformat
         -Wimplicit -Wmove -Wpedantic -Wshadow -Wmissing-braces
-        -Wno-unused-parameter -Wno-unused-private-field -Wno-unused -Wno-mismatched-tags -Wno-format-security)
+        -Wno-mismatched-tags -Wno-format-security)
+    # Disable unused warning during dev
+    #list(APPEND StandardCxxWarnings -Wno-unused-parameter -Wno-unused-private-field -Wno-unused)
     list(APPEND StandardCxxFlags
         -funsigned-char)
 
