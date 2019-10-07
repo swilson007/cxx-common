@@ -16,7 +16,7 @@
 /// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 /// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <sw/versioned_value_cache.h>
+#include <sw/threading_utils.h>
 
 #include <gtest/gtest.h>
 
@@ -83,6 +83,34 @@ TEST(VersionedValueCacheTest, basic) {
     ASSERT_EQ(current, valueCopy2.value());
   }
   ASSERT_EQ(2, stringValueCache.copyCount());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST(VersionedValueCacheTest, atomicSharedValue) {
+  std::mutex testMutex;
+  AtomicSharedValue<std::string, std::mutex, std::lock_guard<std::mutex>> sharedString(testMutex);
+  std::string hello = "Hello World";
+
+  sharedString.set(std::make_unique<std::string>(hello));
+  auto getV1 = sharedString.get();
+  ASSERT_EQ(hello, *getV1);
+
+  {
+    auto getV2 = sharedString.get();
+    ASSERT_EQ(hello, *getV2);
+    ASSERT_EQ(*getV1, *getV2);
+  }
+
+  // Set the main value to something else
+  std::string goodbye = "Goodbye World";
+  sharedString.set(std::make_unique<std::string>(goodbye));
+
+  // Ensure our original value is unaffected
+  ASSERT_EQ(hello, *getV1);
+
+  auto getV3 = sharedString.get();
+  ASSERT_EQ(goodbye, *getV3);
+  ASSERT_NE(*getV1, *getV3);
 }
 
 }  // namespace sw
