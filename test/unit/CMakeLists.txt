@@ -1,4 +1,4 @@
-project(cxx-common-unit-tests)
+project(sw-cxx-common-unit-tests)
 
 find_package(gtest REQUIRED) 
 
@@ -15,7 +15,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE ${StandardCxxDefines})
 target_compile_options(${PROJECT_NAME} PRIVATE ${StandardCxxWarnings})
 target_compile_options(${PROJECT_NAME} PRIVATE ${StandardCxxFlags})
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${ScwSrcDir})
-
 target_link_libraries(${PROJECT_NAME} PRIVATE GTest::GTest GTest::Main)
+target_link_libraries(${PROJECT_NAME} PRIVATE sw-cxx-common)
 

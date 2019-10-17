@@ -1,7 +1,7 @@
 # This cmake is tested so far only on:
 #  * MacOS using CLion. (Not xcode. Never xcode!)
 cmake_minimum_required(VERSION 3.5)
-project(cxx-common)
+project(sw-cxx-common)
 
 # Conan support for packages
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake OPTIONAL)
@@ -88,6 +88,16 @@ elseif (LINUX)
     list(APPEND StandardCxxFlags
         -funsigned-char)
 endif ()
+
+find_package(fmt REQUIRED)
+
+# Setup the library
+file(GLOB HeaderFiles sw/*.h)
+add_library(sw-cxx-common INTERFACE)
+
+target_sources(${PROJECT_NAME} INTERFACE ${HeaderFiles})
+target_include_directories(${PROJECT_NAME} INTERFACE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(${PROJECT_NAME} PUBLIC INTERFACE fmt::fmt)
 
 # Our code subdirs. Header only... no src!
 add_subdirectory(test)

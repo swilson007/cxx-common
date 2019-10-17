@@ -25,6 +25,7 @@
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
+#include <ctime>
 #include <functional>
 #include <iostream>
 #include <mutex>
@@ -37,6 +38,25 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace sw {
+
+////////////////////////////////////////////////////////////////////////////////
+/// OS neutral localtime
+inline std::tm localtime(const std::time_t* timet) {
+#if SW_WINDOWS
+  struct std::tm result;
+  ::localtime_s(&result, timet);
+  return result;
+#else
+  struct std::tm result;
+  const auto tmptr = std::localtime(timet);
+  if (tmptr != nullptr) {
+    result = *tmptr;
+  } else {
+    std::memset(&result, 0, sizeof(result));
+  }
+  return result;
+#endif
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Convert a thread id to an integer
