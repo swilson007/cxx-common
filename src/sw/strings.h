@@ -87,9 +87,9 @@ inline void trimEndingChar(std::string& str, char trimChar) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Determines if 'str' ends with 'suffix'.
-/// This is for pre-c++ 20
-inline bool endsWith(const std::string& str, const std::string& suffix) {
+/// Determines if 'str' ends with 'suffix'. This is for pre-c++ 20
+template <typename StringClass>
+inline bool endsWith(const StringClass& str, const std::string& suffix) {
   auto const strLen = str.length();
   auto const suffixLen = suffix.length();
   bool result =
@@ -104,9 +104,9 @@ inline bool endsWith(const std::string& str, char ch) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Determines if 'str' starts with 'prefix'.
-/// This is for pre-c++ 20
-inline bool startsWith(const std::string& str, const std::string& prefix) {
+/// Determines if 'str' starts with 'prefix'. This is for pre-c++ 20
+template <typename StringClass>
+inline bool startsWith(const StringClass& str, const std::string& prefix) {
   auto const strLen = str.length();
   auto const prefixLen = prefix.length();
   bool result = (strLen >= prefixLen) && (std::memcmp(str.data(), prefix.data(), prefixLen) == 0);
@@ -259,24 +259,21 @@ public:
 
   const char* data() const { return _data; }
   size_t size() const { return _size; }
-  size_t length() const { return size(); }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  /// A string will be deemed empty if 1) the first char is '\0', or 2) if the size is zero. We
-  /// include (1) so that we can avoid checking the size if possible (since the size is lazy)
-  bool empty() const { return data()[0] == '\0' || size() == 0; }
+  size_t length() const { return _size; }
+  bool empty() const { return _size == 0; }
 
   // clang-format off
   // Compares to const char* and std::string
   friend bool operator==(StringView const& lhs, StringView const& rhs) noexcept { return isEqual(lhs._data, lhs._size, rhs._data, rhs._size); }
+  friend bool operator!=(StringView const& lhs, StringView const& rhs) noexcept { return !isEqual(lhs._data, lhs._size, rhs._data, rhs._size); }
   friend bool operator==(StringView const& lhs, char const* rhs) noexcept { return isEqual(lhs._data, lhs._size, rhs, strlen(rhs)); }
-  friend bool operator!=(StringView const& lhs, char const* rhs) noexcept { return isEqual(lhs._data, lhs._size, rhs, strlen(rhs)); }
+  friend bool operator!=(StringView const& lhs, char const* rhs) noexcept { return !isEqual(lhs._data, lhs._size, rhs, strlen(rhs)); }
   friend bool operator==(StringView const& lhs, std::string const& rhs) noexcept { return isEqual(lhs._data, lhs._size, rhs.c_str(), rhs.size()); }
-  friend bool operator!=(StringView const& lhs, std::string const& rhs) noexcept { return isEqual(lhs._data, lhs._size, rhs.c_str(), rhs.size()); }
+  friend bool operator!=(StringView const& lhs, std::string const& rhs) noexcept { return !isEqual(lhs._data, lhs._size, rhs.c_str(), rhs.size()); }
   friend bool operator==(char const* lhs, StringView const& rhs) noexcept { return isEqual(lhs, strlen(lhs), rhs._data, rhs._size); }
-  friend bool operator!=(char const* lhs, StringView const& rhs) noexcept { return isEqual(lhs, strlen(lhs), rhs._data, rhs._size); }
+  friend bool operator!=(char const* lhs, StringView const& rhs) noexcept { return !isEqual(lhs, strlen(lhs), rhs._data, rhs._size); }
   friend bool operator==(std::string const& lhs, StringView const& rhs) noexcept { return isEqual(lhs.c_str(), lhs.size(), rhs._data, rhs._size); }
-  friend bool operator!=(std::string const& lhs, StringView const& rhs) noexcept { return isEqual(lhs.c_str(), lhs.size(), rhs._data, rhs._size); }
+  friend bool operator!=(std::string const& lhs, StringView const& rhs) noexcept { return !isEqual(lhs.c_str(), lhs.size(), rhs._data, rhs._size); }
   // clang-format on
 
   friend std::ostream& operator<<(std::ostream& outs, StringView const& sw) {

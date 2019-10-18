@@ -22,11 +22,6 @@
 
 namespace sw {
 
-/// Simple function to ensure our implicit convert to std::string
-std::string toStr(const std::string& s) {
-  return s;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 TEST(StringsTest, testStringWrapperBasic) {
   {
@@ -35,15 +30,41 @@ TEST(StringsTest, testStringWrapperBasic) {
     ASSERT_TRUE(s1 == "foobar");
 
     std::string ss1 = "foobar";
-    ASSERT_TRUE(ss1 == ss1);
     ASSERT_TRUE(ss1 == s1);
+    ASSERT_FALSE(ss1 != s1);
+    ASSERT_FALSE(s1 != ss1);
     ASSERT_TRUE(ss1 == s1.c_str());
+    ASSERT_FALSE(ss1 != s1.c_str());
   }
 
   {
     StringWrapper s1 = StringWrapper("foobar", 6);
     ASSERT_TRUE("foobar" == s1);
     ASSERT_TRUE(s1 == "foobar");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST(StringsTest, testStringViewBasic) {
+  {
+    StringView s1 = "foobar";
+    ASSERT_TRUE("foobar" == s1);
+    ASSERT_TRUE("xfoobar" != s1);
+    ASSERT_TRUE(s1 == "foobar");
+    ASSERT_TRUE(s1 != "xfoobar");
+
+    std::string ss1 = "foobar";
+    ASSERT_TRUE(ss1 == s1);
+    ASSERT_FALSE(ss1 != s1);
+    ASSERT_FALSE(s1 != ss1);
+  }
+
+  {
+    StringView s1 = StringView("foobar", 6);
+    ASSERT_TRUE("foobar" == s1);
+    ASSERT_TRUE("xfoobar" != s1);
+    ASSERT_TRUE(s1 == "foobar");
+    ASSERT_TRUE(s1 != "xfoobar");
   }
 }
 
@@ -55,6 +76,13 @@ TEST(StringsTest, endsWith) {
   ASSERT_TRUE(sw::endsWith(s, "xe"));
   ASSERT_FALSE(sw::endsWith(s, ".ex"));
   ASSERT_FALSE(sw::endsWith(s, "foobar.exe2"));
+
+  StringView sv = "foobar.exe";
+  ASSERT_TRUE(sw::endsWith(sv, ".exe"));
+  ASSERT_TRUE(sw::endsWith(sv, "exe"));
+  ASSERT_TRUE(sw::endsWith(sv, "xe"));
+  ASSERT_FALSE(sw::endsWith(sv, ".ex"));
+  ASSERT_FALSE(sw::endsWith(sv, "foobar.exe2"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,6 +93,13 @@ TEST(StringsTest, startsWith) {
   ASSERT_TRUE(sw::startsWith(s, "f"));
   ASSERT_FALSE(sw::startsWith(s, "oobar"));
   ASSERT_FALSE(sw::startsWith(s, "foobar.exef"));
+
+  StringView sv = "foobar.exe";
+  ASSERT_TRUE(sw::startsWith(sv, "foobar"));
+  ASSERT_TRUE(sw::startsWith(sv, "foo"));
+  ASSERT_TRUE(sw::startsWith(sv, "f"));
+  ASSERT_FALSE(sw::startsWith(sv, "oobar"));
+  ASSERT_FALSE(sw::startsWith(sv, "foobar.exef"));
 }
 
 }  // namespace sw
