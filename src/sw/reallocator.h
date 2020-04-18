@@ -26,7 +26,7 @@
 #include <new>
 #include <type_traits>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace ::sw::intliterals;
 
@@ -145,4 +145,4 @@ public:
 template <typename T>
 using StdReallocator = ReallocatorAdapter<T>;
 
-}  // namespace sw
+SW_NAMESPACE_END

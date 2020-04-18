@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 TEST(Base64Test, basic) {
 #if 0
@@ -56,4 +56,4 @@ TEST(Base64Test, uuid) {
   // TODO
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

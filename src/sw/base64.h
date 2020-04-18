@@ -24,7 +24,7 @@
 
 #include <string>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 /// Base64 encoder that supports:
 ///  * Standard encoding, or
@@ -34,8 +34,7 @@ namespace sw {
 namespace detail {
 
 struct Base64Traits {
-  static constexpr const char* kEncode =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  static constexpr const char* kEncode = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   static char encode(byte bits6) {
     SW_ASSERT((bits6 & ~0b111111_u8) == 0);
     return kEncode[bits6];
@@ -43,8 +42,7 @@ struct Base64Traits {
 };
 
 struct Base64UrlTraits {
-  static constexpr const char* kEncode =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  static constexpr const char* kEncode = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
   static char encode(byte bits6) {
     SW_ASSERT((bits6 & ~0b111111_u8) == 0);
     return kEncode[bits6];
@@ -93,8 +91,7 @@ inline std::string base64UrlEncode(const char* str, sizex len, bool pad = false)
 ////////////////////////////////////////////////////////////////////////////////
 template <typename Base64TraitsType>
 inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad) {
-  SW_ASSERT(((sourceLen << 2u) >> 2u) ==
-            sourceLen);  // Ensure 2-MSbits are zero so we don't overflow
+  SW_ASSERT(((sourceLen << 2u) >> 2u) == sourceLen);  // Ensure 2-MSbits are zero so we don't overflow
 
   // Figure out resultant string size. It will be much more efficient to pre-size the
   // string and use [] ops than to append to it, as the append func has to do various checks
@@ -136,7 +133,7 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
     if (pad) {
       result[resultPos++] = kPad;
     }
-  } else if ((pos + 1) == end) { // 1 byte left
+  } else if ((pos + 1) == end) {  // 1 byte left
     const auto& b0 = *pos++;
     result[resultPos++] = encode(byte(b0 >> 2u));
     result[resultPos++] = encode(byte(byte(b0 << 4u) & 0b110000_u8));
@@ -151,4 +148,4 @@ inline std::string base64Encoder(const byte source[], sizex sourceLen, bool pad)
 
 /// TODO: write a decoder
 
-}  // namespace sw
+SW_NAMESPACE_END

@@ -22,14 +22,13 @@
 
 #include <array>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(UtilsTest, testSplitString) {
   {
     auto subs = std::vector<std::string>{};
-    utils::splitString("foo:bar:foobar", ':',
-                       [&](std::string&& s) { subs.emplace_back(std::move(s)); });
+    utils::splitString("foo:bar:foobar", ':', [&](std::string&& s) { subs.emplace_back(std::move(s)); });
     ASSERT_EQ(subs.size(), 3u);
     ASSERT_EQ(subs[0], "foo");
     ASSERT_EQ(subs[1], "bar");
@@ -38,8 +37,7 @@ TEST(UtilsTest, testSplitString) {
 
   {
     auto subs = std::vector<std::string>{};
-    utils::splitString(":foo::bar:foobar:", ':',
-                       [&](std::string&& s) { subs.emplace_back(std::move(s)); });
+    utils::splitString(":foo::bar:foobar:", ':', [&](std::string&& s) { subs.emplace_back(std::move(s)); });
     ASSERT_EQ(subs.size(), 6u);
     ASSERT_EQ(subs[0], "");
     ASSERT_EQ(subs[1], "foo");
@@ -106,4 +104,4 @@ TEST(UtilsTest, testFastVectorRemove) {
   ASSERT_EQ(stringVec.front(), "bar");
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

@@ -31,143 +31,138 @@
 /// Contains compile time system information.
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace sw { namespace system {
+SW_NAMESPACE_BEGIN namespace system {
+  ////////////////////////////////////////////////////////////////////////////////
+  enum class SystemPosix : u8 {
+    Disabled = 0,
+    Enabled = 1,
+  };
 
-////////////////////////////////////////////////////////////////////////////////
-enum class SystemPosix : u8 {
-  Disabled = 0,
-  Enabled = 1,
-};
+  ////////////////////////////////////////////////////////////////////////////////
+  enum class SystemPlatform : u8 {
+    Linux,
+    MacOs,
+    Windows,
+  };
 
-////////////////////////////////////////////////////////////////////////////////
-enum class SystemPlatform : u8 {
-  Linux,
-  MacOs,
-  Windows,
-};
+  ////////////////////////////////////////////////////////////////////////////////
+  enum class SystemArch : u8 {
+    Bits32,
+    Bits64,
+  };
 
-////////////////////////////////////////////////////////////////////////////////
-enum class SystemArch : u8 {
-  Bits32,
-  Bits64,
-};
-
-////////////////////////////////////////////////////////////////////////////////
-inline constexpr char const* toString(SystemPosix v) {
-  switch (v) {
-  case SystemPosix::Enabled:
-    return "Enabled";
-  case SystemPosix::Disabled:
-    return "Disabled";
+  ////////////////////////////////////////////////////////////////////////////////
+  inline constexpr char const* toString(SystemPosix v) {
+    switch (v) {
+    case SystemPosix::Enabled:
+      return "Enabled";
+    case SystemPosix::Disabled:
+      return "Disabled";
+    }
+    return "unknown";
   }
-  return "unknown";
-}
 
-////////////////////////////////////////////////////////////////////////////////
-inline std::ostream& operator<<(std::ostream& outs, SystemPosix v) {
-  outs << toString(v);
-  return outs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-inline constexpr char const* toString(SystemArch v) {
-  switch (v) {
-  case SystemArch::Bits32:
-    return "Bits32";
-  case SystemArch::Bits64:
-    return "Bits64";
+  ////////////////////////////////////////////////////////////////////////////////
+  inline std::ostream& operator<<(std::ostream& outs, SystemPosix v) {
+    outs << toString(v);
+    return outs;
   }
-  return "unknown";
-}
 
-////////////////////////////////////////////////////////////////////////////////
-inline std::ostream& operator<<(std::ostream& outs, SystemArch v) {
-  outs << toString(v);
-  return outs;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-inline constexpr char const* toString(SystemPlatform v) {
-  switch (v) {
-  case SystemPlatform::MacOs:
-    return "MacOs";
-  case SystemPlatform::Linux:
-    return "Linux";
-  case SystemPlatform::Windows:
-    return "Windows";
+  ////////////////////////////////////////////////////////////////////////////////
+  inline constexpr char const* toString(SystemArch v) {
+    switch (v) {
+    case SystemArch::Bits32:
+      return "Bits32";
+    case SystemArch::Bits64:
+      return "Bits64";
+    }
+    return "unknown";
   }
-  return "unknown";
-}
 
-////////////////////////////////////////////////////////////////////////////////
-inline std::ostream& operator<<(std::ostream& outs, SystemPlatform v) {
-  outs << toString(v);
-  return outs;
-}
+  ////////////////////////////////////////////////////////////////////////////////
+  inline std::ostream& operator<<(std::ostream& outs, SystemArch v) {
+    outs << toString(v);
+    return outs;
+  }
 
-////////////////////////////////////////////////////////////////////////////////
-template <SystemPosix Posix, SystemPlatform Platform, SystemArch Arch,
-  sizex kArchPointerSize>
-struct SystemTraits {
-  static constexpr SystemPosix kPosix = Posix;
-  static constexpr SystemPlatform kPlatform = Platform;
-  static constexpr SystemArch kArch = Arch;
-  static constexpr bool kIsPosix = (kPosix == SystemPosix::Enabled);
-  static constexpr sizex kPointerSize = kArchPointerSize;
+  ////////////////////////////////////////////////////////////////////////////////
+  inline constexpr char const* toString(SystemPlatform v) {
+    switch (v) {
+    case SystemPlatform::MacOs:
+      return "MacOs";
+    case SystemPlatform::Linux:
+      return "Linux";
+    case SystemPlatform::Windows:
+      return "Windows";
+    }
+    return "unknown";
+  }
 
-  // Function versions... for those times when you need a function
-  static constexpr SystemPosix posix() { return kPosix; };
-  static constexpr SystemPlatform platform() { return kPlatform; }
-  static constexpr SystemArch arch() { return kArch; }
-  static constexpr bool isPosix() { return kIsPosix; };
-};
+  ////////////////////////////////////////////////////////////////////////////////
+  inline std::ostream& operator<<(std::ostream& outs, SystemPlatform v) {
+    outs << toString(v);
+    return outs;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  template <SystemPosix Posix, SystemPlatform Platform, SystemArch Arch, sizex kArchPointerSize>
+  struct SystemTraits {
+    static constexpr SystemPosix kPosix = Posix;
+    static constexpr SystemPlatform kPlatform = Platform;
+    static constexpr SystemArch kArch = Arch;
+    static constexpr bool kIsPosix = (kPosix == SystemPosix::Enabled);
+    static constexpr sizex kPointerSize = kArchPointerSize;
+
+    // Function versions... for those times when you need a function
+    static constexpr SystemPosix posix() { return kPosix; };
+    static constexpr SystemPlatform platform() { return kPlatform; }
+    static constexpr SystemArch arch() { return kArch; }
+    static constexpr bool isPosix() { return kIsPosix; };
+  };
 
 #if SW_POSIX
-constexpr SystemPosix kThisPosix = SystemPosix::Enabled;
+  constexpr SystemPosix kThisPosix = SystemPosix::Enabled;
 #else
-constexpr SystemPosix kThisPosix = SystemPosix::Disabled;
+  constexpr SystemPosix kThisPosix = SystemPosix::Disabled;
 #endif
 
 /// Setup each current system value
 #if SW_ARCH_32BIT
-constexpr SystemArch kThisArch = SystemArch::Bits32;
+  constexpr SystemArch kThisArch = SystemArch::Bits32;
 #else
-constexpr SystemArch kThisArch = SystemArch::Bits64;
+  constexpr SystemArch kThisArch = SystemArch::Bits64;
 #endif
 
 // Finall - define the per-OS system traits class
 #if SW_MACOS
-constexpr SystemPlatform kThisPlatform = SystemPlatform::MacOs;
-struct MacSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>
-{
-  static constexpr const char* kNewline = "\n";
-  static constexpr const char* newline() { return kNewline; }
-};
+  constexpr SystemPlatform kThisPlatform = SystemPlatform::MacOs;
+  struct MacSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER> {
+    static constexpr const char* kNewline = "\n";
+    static constexpr const char* newline() { return kNewline; }
+  };
 
-using ThisSystemTraits = MacSystemTraits;
+  using ThisSystemTraits = MacSystemTraits;
 
 #elif SW_LINUX
-constexpr SystemPlatform kThisPlatform = SystemPlatform::Linux;
-struct LinuxSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>
-{
-  static constexpr const char* kNewline = "\n";
-  static constexpr const char* newline() { return kNewline; }
-};
+  constexpr SystemPlatform kThisPlatform = SystemPlatform::Linux;
+  struct LinuxSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER> {
+    static constexpr const char* kNewline = "\n";
+    static constexpr const char* newline() { return kNewline; }
+  };
 
-using ThisSystemTraits = LinuxSystemTraits;
+  using ThisSystemTraits = LinuxSystemTraits;
 
 #elif SW_WINDOWS
-constexpr SystemPlatform kThisPlatform = SystemPlatform::Windows;
-struct LinuxSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER>
-{
-  static constexpr const char* kNewline = "\r\n";
-  static constexpr const char* newline() { return kNewline; }
-};
+  constexpr SystemPlatform kThisPlatform = SystemPlatform::Windows;
+  struct LinuxSystemTraits : public SystemTraits<kThisPosix, kThisPlatform, kThisArch, SW_SIZEOF_POINTER> {
+    static constexpr const char* kNewline = "\r\n";
+    static constexpr const char* newline() { return kNewline; }
+  };
 
-using ThisSystemTraits = WindowsSystemTraits;
+  using ThisSystemTraits = WindowsSystemTraits;
 
 #else
 #  error TODO
 #endif
-
-}}  // namespace sw::system
+}
+}  // namespace sw::system

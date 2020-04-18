@@ -39,7 +39,7 @@
 /// it's easier to use this for cross-platform code than std::fs::path.
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 /// Using an #ifdef to determine the type of normalization used by the PosixPath
 /// normalize(), normalized(), and absonormed related calls.
@@ -1843,4 +1843,4 @@ inline PosixPath::native_string_type PosixPath::native() const {
   return toOsNative(*this);
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

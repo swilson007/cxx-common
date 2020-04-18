@@ -30,16 +30,15 @@
 #include <type_traits>
 #include <vector>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 template <typename T, typename Reallocator>
 class VectorBase;
 
 // The vector type.
-template <typename T,
-          typename Reallocator = std::conditional_t<
-              std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value,
-              MallocReallocator<T>, ReallocatorAdapter<T, std::allocator<T>>>>
+template <typename T, typename Reallocator = std::conditional_t<
+                          std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value,
+                          MallocReallocator<T>, ReallocatorAdapter<T, std::allocator<T>>>>
 using Vector = VectorBase<T, Reallocator>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,41 +95,31 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   explicit VectorBase(size_type count) :
-      begin_(allocator().allocate(count)),
-      end_(begin_ + count),
-      capacity_(end_) {
+      begin_(allocator().allocate(count)), end_(begin_ + count), capacity_(end_) {
     move_copy_ops::constructDefaultItems(begin_, count);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   VectorBase(size_type count, size_type capacity) :
-      begin_(allocator().allocate(capacity)),
-      end_(begin_ + count),
-      capacity_(begin_ + capacity) {
+      begin_(allocator().allocate(capacity)), end_(begin_ + count), capacity_(begin_ + capacity) {
     move_copy_ops::constructDefaultItems(begin_, count);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   VectorBase(size_type count, const value_type& value) :
-      begin_(allocator().allocate(count)),
-      end_(begin_ + count),
-      capacity_(end_) {
+      begin_(allocator().allocate(count)), end_(begin_ + count), capacity_(end_) {
     move_copy_ops::constructItemsFromItem(begin_, count, value);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   VectorBase(size_type count, size_type capacity, const value_type& value) :
-      begin_(allocator().allocate(capacity)),
-      end_(begin_ + count),
-      capacity_(begin_ + capacity) {
+      begin_(allocator().allocate(capacity)), end_(begin_ + count), capacity_(begin_ + capacity) {
     move_copy_ops::constructItemsFromItem(begin_, count, value);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
   VectorBase(std::initializer_list<T> init) :
-      begin_(allocator().allocate(init.size())),
-      end_(begin_ + init.size()),
-      capacity_(end_) {
+      begin_(allocator().allocate(init.size())), end_(begin_ + init.size()), capacity_(end_) {
     T* slot = begin_;
     for (const auto& value : init) {
       move_copy_ops::constructItemsFromItem(slot, 1, value);
@@ -329,4 +318,4 @@ private:
   T* capacity_;
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

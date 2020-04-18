@@ -21,9 +21,9 @@
 #include "assert.h"
 #include "defines.h"
 #include "fixed_width_int_literals.h"
+#include "lazy.h"
 #include "misc.h"
 #include "types.h"
-#include "lazy.h"
 
 #include <codecvt>
 #include <cstring>
@@ -31,7 +31,7 @@
 #include <sstream>
 #include <string>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace sw::intliterals;
 
@@ -298,4 +298,4 @@ inline std::string toString(const StringView& sv) {
   return std::string(sv.data(), sv.size());
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

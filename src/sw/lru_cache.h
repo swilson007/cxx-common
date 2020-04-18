@@ -34,7 +34,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace sw::intliterals;
 
@@ -491,8 +491,8 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Allow value setting from non-const iterators only
   template <typename NonConstIter = MemberIter>
-  typename std::enable_if<!std::is_same<NonConstIter, ConstMemberIter>::value, Value>::type& operator*()
-      const {
+  typename std::enable_if<!std::is_same<NonConstIter, ConstMemberIter>::value, Value>::type&
+  operator*() const {
     return CacheType::valueFromIter(iter_);
   }
 
@@ -515,4 +515,4 @@ private:
 
 }  // namespace lru_detail
 
-}  // namespace sw
+SW_NAMESPACE_END

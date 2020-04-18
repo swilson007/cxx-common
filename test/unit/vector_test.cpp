@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 struct TrackedItem {
   ~TrackedItem() { --sItems; }
@@ -321,4 +321,4 @@ TEST(VectorTest, nonTrivialVecPerf) {
 }
 #endif
 
-}  // namespace sw
+SW_NAMESPACE_END

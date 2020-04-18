@@ -18,7 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Type defines 'bool equals(const T& that) const'
@@ -32,12 +32,8 @@ struct EqualityMixin {
 /// Type defines only 'bool lessThan(const T& that) const'
 template <typename T>
 struct LessThanEqualityMixin {
-  friend bool operator==(const T& lhs, const T& rhs) {
-    return !lhs.lessThan(rhs) && !rhs.lessThan(lhs);
-  }
-  friend bool operator!=(const T& lhs, const T& rhs) {
-    return lhs.lessThan(rhs) || rhs.lessThan(lhs);
-  }
+  friend bool operator==(const T& lhs, const T& rhs) { return !lhs.lessThan(rhs) && !rhs.lessThan(lhs); }
+  friend bool operator!=(const T& lhs, const T& rhs) { return lhs.lessThan(rhs) || rhs.lessThan(lhs); }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,4 +46,4 @@ struct CompareMixin {
   friend bool operator>=(const T& lhs, const T& rhs) { return !(lhs.lessThan(rhs)); }
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

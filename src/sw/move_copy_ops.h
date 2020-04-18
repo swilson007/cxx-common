@@ -22,11 +22,11 @@
 #include "misc.h"
 #include "types.h"
 
-#include <new>
 #include <cstring>
+#include <new>
 #include <type_traits>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace ::sw::intliterals;
 
@@ -75,8 +75,8 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Destruct count items starting at dest. Items are destructed in forward order.
   /// TODO: Reverse order?
-  template <typename U = T, typename std::enable_if_t<NeedsDestruction<U>::value, Destruction> =
-                                Destruction::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<NeedsDestruction<U>::value, Destruction> = Destruction::Unused>
   inline static void destructItems(T* dest, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       (&dest[i])->~T();
@@ -85,8 +85,8 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Destruct count items starting at dest. Items are destructed in forward order.
-  template <typename U = T, typename std::enable_if_t<!NeedsDestruction<U>::value, NoDestruction> =
-                                NoDestruction::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!NeedsDestruction<U>::value, NoDestruction> = NoDestruction::Unused>
   inline static void destructItems(T* dest, sizex count) {
     /// These type of items require no destruction!
     (void)dest;
@@ -95,8 +95,8 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<NeedsConstruction<U>::value, Construction> =
-                                Construction::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<NeedsConstruction<U>::value, Construction> = Construction::Unused>
   inline static void constructItemsFromItem(T* dest, sizex count, const T& item) {
     for (sizex i = 0; i < count; ++i) {
       auto memAddr = &(dest[i]);
@@ -105,16 +105,16 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<!NeedsConstruction<U>::value,
-                                                      NoConstruction> = NoConstruction::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!NeedsConstruction<U>::value, NoConstruction> = NoConstruction::Unused>
   inline static void constructItemsFromItem(T* dest, sizex count, const T& item) {
     /// These type of items don't need constructor calls
     std::fill(dest, dest + count, item);
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<NeedsConstruction<U>::value, Construction> =
-                                Construction::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<NeedsConstruction<U>::value, Construction> = Construction::Unused>
   inline static void constructDefaultItems(T* dest, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       auto memAddr = &(dest[i]);
@@ -123,16 +123,16 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<!NeedsConstruction<U>::value,
-                                                      NoConstruction> = NoConstruction::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!NeedsConstruction<U>::value, NoConstruction> = NoConstruction::Unused>
   inline static void constructDefaultItems(T* dest, sizex count) {
     /// These type of items are safely set to 0 on construction
     std::memset(dest, 0, count * sizeof(T));
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
-                                NotMemCopyable::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> = NotMemCopyable::Unused>
   inline static void moveAssignItems(T* dest, const T* source, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       dest[i] = std::move(source[i]);  // move assign
@@ -148,8 +148,8 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
-                                NotMemCopyable::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> = NotMemCopyable::Unused>
   inline static void copyAssignItems(T* dest, const T* source, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       dest[i] = source[i];  // copy assign
@@ -165,8 +165,8 @@ public:
   }
 
   ////////////////////////////////////////////////////////////////////////////////
-  template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
-                                NotMemCopyable::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> = NotMemCopyable::Unused>
   inline static void copyConstructItems(T* dest, const T* source, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       new (&dest[i]) T(source[i]);  // Copy-ctor
@@ -183,8 +183,8 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Move (or copy) 'count' non-trivial items from 'source' to 'dest'
-  template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
-                                NotMemCopyable::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> = NotMemCopyable::Unused>
   inline static void moveConstructItems(T* dest, const T* source, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       new (&dest[i]) T(std::move(source[i]));  // Move-ctor
@@ -202,8 +202,8 @@ public:
   ////////////////////////////////////////////////////////////////////////////////
   /// Move (or copy) 'count' non-trivial items from 'source' to 'dest', and delete
   /// each item from 'source'
-  template <typename U = T, typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> =
-                                NotMemCopyable::Unused>
+  template <typename U = T,
+            typename std::enable_if_t<!IsMemCopyable<U>::value, NotMemCopyable> = NotMemCopyable::Unused>
   inline static void moveConstructAndDeleteItems(T* dest, const T* source, sizex count) {
     for (sizex i = 0; i < count; ++i) {
       // Move it from source to dest
@@ -223,4 +223,4 @@ public:
   }
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

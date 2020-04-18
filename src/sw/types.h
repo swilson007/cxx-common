@@ -27,7 +27,7 @@
 #include <mutex>
 #include <type_traits>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 // Arch sized types. No more int/uint. The 'x' suffix indicates "architecture"
 // and is inspired by "x86" and "x64".
@@ -84,4 +84,4 @@ using HiResTimepointNs = std::chrono::time_point<HiResClock, std::chrono::nanose
 using HiResTimepointMs = std::chrono::time_point<HiResClock, std::chrono::milliseconds>;
 using SteadyTimepointMs = std::chrono::time_point<SteadyClock, std::chrono::milliseconds>;
 
-}  // namespace sw
+SW_NAMESPACE_END

@@ -18,9 +18,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+#include "defines.h"
+
 #include <chrono>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Class for hi-resolution timing.
@@ -107,4 +109,4 @@ private:
   TimePoint start_;
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

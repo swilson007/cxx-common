@@ -18,14 +18,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+#include "base64.h"
 #include "system_traits.h"
 #include "utils.h"
-#include "base64.h"
 
 #include <array>
 #include <iostream>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 template <typename SystemTraits = system::ThisSystemTraits>
 class UuidType;
@@ -79,15 +79,11 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Convert the UUID into a base64 string
-  std::string toBase64() const {
-    return base64Encode(bytes_.data(), 16);
-  }
+  std::string toBase64() const { return base64Encode(bytes_.data(), 16); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Convert the UUID into a filename-safe base64 string
-  std::string toBase64Url() const {
-    return base64UrlEncode(bytes_.data(), 16);
-  }
+  std::string toBase64Url() const { return base64UrlEncode(bytes_.data(), 16); }
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Determine if the UUID is valid or not. An invalid UUID has all bytes as 0
@@ -110,7 +106,7 @@ private:
   std::array<byte, 16> bytes_ = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 };
 
-}  // namespace sw
+SW_NAMESPACE_END
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Per-OS implementation.
@@ -122,7 +118,7 @@ private:
 #if SW_UNIX
 
 #  include <uuid/uuid.h>
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 template <>
@@ -137,4 +133,4 @@ inline Uuid Uuid::create() noexcept {
 #  error Implement Uuid::create for windows
 #endif
 
-}  // namespace sw
+SW_NAMESPACE_END

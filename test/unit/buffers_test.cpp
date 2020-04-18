@@ -16,12 +16,13 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <gtest/gtest.h>
 #include <sw/buffers.h>
+
+#include <gtest/gtest.h>
 
 #include <array>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 TEST(BuffersTest, testUniqueBufferBasics) {
   // Basic creation. Set values to induce memory problems if they exist
@@ -62,4 +63,4 @@ TEST(BuffersTest, testBufferWrapperBasics) {
   }
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace intliterals;
 
@@ -60,8 +60,7 @@ public:
 
   /// Proper noexcept move
   UniqueBufferType(UniqueBufferType&& that) noexcept :
-      data_(std::exchange(that.data_, nullptr)),
-      size_(std::exchange(that.size_, 0)) {}
+      data_(std::exchange(that.data_, nullptr)), size_(std::exchange(that.size_, 0)) {}
 
   /// Proper Noexcept move assign
   UniqueBufferType& operator=(UniqueBufferType&& that) noexcept {
@@ -228,8 +227,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////////////////
   /// Creates a buffer-view of the given unique buffer
-  explicit ConstBufferView(const UniqueBuffer& ub) noexcept :
-      ConstBufferView(ub.data(), ub.size()) {}
+  explicit ConstBufferView(const UniqueBuffer& ub) noexcept : ConstBufferView(ub.data(), ub.size()) {}
 
   /// A valid buffer must be non-null and have >0 size
   bool isValid() const noexcept { return data_ != nullptr && size_ > 0; }
@@ -281,4 +279,4 @@ private:
   sizex size_ = 0_z;
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

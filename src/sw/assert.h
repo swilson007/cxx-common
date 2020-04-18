@@ -22,7 +22,7 @@
 
 #include <cstdlib>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// General purpose NOP (do nothing) function. Can help with warnings, static analysis
@@ -38,11 +38,23 @@ inline void unused(const T&) noexcept {}
 /// SW_ASSERT_ALWAYS will be enabled even in release mode.
 /// TODO: add __FILE__ and __LINE__ in once it's useful
 #if SW_MSVC_CXX
-#  define SW_ASSERT_ALWAYS(cond_) do {if (!(cond_)) __debugbreak();} while(0)
+#  define SW_ASSERT_ALWAYS(cond_) \
+    do {                          \
+      if (!(cond_))               \
+        __debugbreak();           \
+    } while (0)
 #elif defined(__has_builtin)
-#  define SW_ASSERT_ALWAYS(cond_) do {if (!(cond_)) __builtin_trap();} while(0)
+#  define SW_ASSERT_ALWAYS(cond_) \
+    do {                          \
+      if (!(cond_))               \
+        __builtin_trap();         \
+    } while (0)
 #else
-#  define SW_ASSERT_ALWAYS(cond_) do {if (!(cond_)) std::abort();} while(0)
+#  define SW_ASSERT_ALWAYS(cond_) \
+    do {                          \
+      if (!(cond_))               \
+        std::abort();             \
+    } while (0)
 #endif
 
 // Override assert setting with -DSW_ENABLE_ASSERT=0|1
@@ -53,6 +65,10 @@ inline void unused(const T&) noexcept {}
 #endif
 
 #define SW_IGNORE_EXPRESSION(expr_) do { if (false && (expr_)) ::sw::nop(); } while (false)
+#define SW_IGNORE_EXPRESSION(expr_) \
+  do {                              \
+    if (false && (expr_))           \
+      ::sw::nop();                  \
 
 ////////////////////////////////////////////////////////////////////////////////
 /// SW_ASSERT is auto-enabled for debug builds while disabled for other builds.
@@ -63,4 +79,4 @@ inline void unused(const T&) noexcept {}
 #  define SW_ASSERT(cond_) SW_IGNORE_EXPRESSION(cond_)
 #endif
 
-}  // namespace sw
+SW_NAMESPACE_END

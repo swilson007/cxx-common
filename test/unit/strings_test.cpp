@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(StringsTest, testStringWrapperBasic) {
@@ -102,4 +102,4 @@ TEST(StringsTest, startsWith) {
   ASSERT_FALSE(sw::startsWith(sv, "foobar.exef"));
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

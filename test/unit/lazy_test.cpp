@@ -21,7 +21,7 @@
 
 #include <gtest/gtest.h>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 struct TestDummy {
@@ -56,4 +56,4 @@ TEST(LazyTest, basic) {
 };
 // clang-format on
 
-}  // namespace sw
+SW_NAMESPACE_END

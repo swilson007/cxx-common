@@ -34,7 +34,7 @@
 #include <queue>
 #include <sstream>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// This code is quick and minimally featured. I had a plan to one day use a real
@@ -532,4 +532,4 @@ inline void ConsoleFileLogHandler::onLog(SystemTimepoint logTime, Logger::Catego
   }
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

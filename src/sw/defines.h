@@ -39,6 +39,14 @@
 // libs to enable easy transport of code that uses this
 ////////////////////////////////////////////////////////////////////////////////
 
+// Customizable namespace
+#ifndef SW_NAMESPACE_BEGIN
+#  define SW_NAMESPACE_BEGIN namespace sw {
+#endif
+#ifndef SW_NAMESPACE_END
+#  define SW_NAMESPACE_END }
+#endif
+
 // OS Related
 #if !defined(SW_OS)
 #  if defined(WIN32)

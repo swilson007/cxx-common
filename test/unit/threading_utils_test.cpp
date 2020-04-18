@@ -22,7 +22,7 @@
 
 #include <mutex>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 std::mutex gTestMutex;
 
@@ -113,4 +113,4 @@ TEST(VersionedValueCacheTest, atomicSharedValue) {
   ASSERT_NE(*getV1, *getV3);
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

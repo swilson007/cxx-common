@@ -23,7 +23,7 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(PosixPathTest, construction) {
@@ -281,7 +281,7 @@ TEST(PosixPathTest, pathSegmentIterator) {
   {
     pd::PathSegmentIterator iter("");
     ASSERT_EQ(iter.end(), iter.next());
-  }  // namespace pd=path_detail;
+  }  // namespace ;
   {
     pd::PathSegmentIterator iter("//foo/foo/.././bar/foobar.txt");
     ASSERT_EQ((pd::PathSegment{StringView{"//foo"}, pd::PathSection::RootName}), iter.begin());
@@ -429,4 +429,4 @@ TEST(PosixPathTest, osConvert) {
 #endif
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

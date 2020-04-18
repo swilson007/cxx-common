@@ -24,7 +24,7 @@
 
 #include <vector>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace sw::intliterals;
 
@@ -91,9 +91,7 @@ public:
 
     ////////////////////////////////////////////////////////////////////////////////
     Value(T&& value, VersionedValueCache* library, u32 version) :
-        _value(std::move(value)),
-        _library(library),
-        _version(version) {}
+        _value(std::move(value)), _library(library), _version(version) {}
 
     T _value;
     VersionedValueCache* _library = nullptr;
@@ -273,4 +271,4 @@ private:
   ConstValueRef _value;
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

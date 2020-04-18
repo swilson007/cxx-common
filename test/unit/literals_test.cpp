@@ -16,14 +16,15 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <gtest/gtest.h>
 #include <sw/fixed_width_int_literals.h>
+
+#include <gtest/gtest.h>
 
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 using namespace sw::intliterals;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -132,4 +133,4 @@ TEST(LiteralsTest, basicTest) {
   }
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

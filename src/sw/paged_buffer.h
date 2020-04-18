@@ -21,11 +21,11 @@
 #include "assert.h"
 #include "types.h"
 
-#include <vector>
-#include <memory>
 #include <cstring>
+#include <memory>
+#include <vector>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Buffer that can grow without reallocating by using memory pages
@@ -168,4 +168,4 @@ private:
   sizex size_ = 0;  ///< size in bytes
 };
 
-}  // namespace sw
+SW_NAMESPACE_END

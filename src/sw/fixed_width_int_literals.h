@@ -55,7 +55,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 namespace intliterals {
 namespace detail {
 
@@ -75,10 +75,9 @@ constexpr u64 powerOf(u64 value, u64 n) {
 /// Convert the incoming char digit value to the proper numerical value. This function
 /// handles 0-9,a-f,A-F digits... so everything.
 constexpr u64 digitToValue(char kDigit) {
-  return static_cast<u64>(
-      kDigit >= '0' && kDigit <= '9' ?
-          kDigit - '0' :
-          ((kDigit >= 'a' && kDigit <= 'f') ? kDigit - 'a' + 10 : kDigit - 'A' + 10));
+  return static_cast<u64>(kDigit >= '0' && kDigit <= '9' ?
+                              kDigit - '0' :
+                              ((kDigit >= 'a' && kDigit <= 'f') ? kDigit - 'a' + 10 : kDigit - 'A' + 10));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +133,7 @@ constexpr u64 createValue() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Sigh the macro... Can't get a string into a static_assert with a template param,
 /// it must be literal, and I don't want to copy/paste the function.
-#define SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(typename_, errorMessage_)           \
+#define SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(typename_, errorMessage_)            \
   template <u64 kValue>                                                            \
   constexpr typename_ checkValid_##typename_() {                                   \
     static_assert(kValue <= std::numeric_limits<typename_>::max(), errorMessage_); \
@@ -159,7 +158,7 @@ SW_FIXEDWIDTH_DEFINE_CHECK_VALID_FUNC(intx, "intx literal out of range.");
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Finally the user-defined literal operators. Again with the macros?
-#define SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(typesuffix_, typename_)         \
+#define SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(typesuffix_, typename_)          \
   template <char... digits>                                                    \
   constexpr typename_ operator"" typesuffix_() {                               \
     return detail::checkValid_##typename_<detail::createValue<digits...>()>(); \
@@ -180,4 +179,4 @@ SW_FIXEDWIDTH_DEFINE_INTEGER_OPERATOR(_z, size_t);
 // clang-format on
 
 }  // namespace intliterals
-}  // namespace sw
+SW_NAMESPACE_END

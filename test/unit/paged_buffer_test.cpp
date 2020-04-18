@@ -24,7 +24,7 @@
 
 #include <array>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(PagedBufferTest, basicTest) {
@@ -54,4 +54,4 @@ TEST(PagedBufferTest, basicTest) {
   ASSERT_EQ(destBuffer[11], 5);
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

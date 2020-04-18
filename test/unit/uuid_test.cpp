@@ -16,14 +16,15 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <gtest/gtest.h>
 #include <sw/strings.h>
 #include <sw/uuid.h>
+
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <sstream>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(UuidTest, testToString) {
@@ -64,4 +65,4 @@ TEST(UuidTest, testCreate) {
   std::cout << "real uuid=" << u0 << std::endl;
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

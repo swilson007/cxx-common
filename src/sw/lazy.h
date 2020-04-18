@@ -26,7 +26,7 @@
 /// Contains useful miscellaneous functions
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Wraps a POD value that is lazy-evaluated (once) and consumes no extra space. This
@@ -130,4 +130,10 @@ public:
   explicit LazyValue(std::function<T()> f) noexcept : BaseClass(f) {}
 };
 
-};  // namespace sw
+/// TODO
+template <typename T, typename Func>
+LazyLambdaValue<T, Func> makeLazyValue(Func&& f) {
+  return LazyLambdaValue<T, Func>(std::forward<Func>(f));
+}
+}
+;  // namespace sw

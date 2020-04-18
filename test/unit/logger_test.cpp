@@ -20,7 +20,7 @@
 
 #include <gtest/gtest.h>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 struct TestLogEntry {
   LoggerCategory cat = LoggerCategory::None;
@@ -31,8 +31,8 @@ struct TestLogEntry {
 ////////////////////////////////////////////////////////////////////////////////
 struct TestLogHandler : LogHandler {
   void onLog(SystemTimepoint logTime, LoggerCategory cat, const StringWrapper& msg, bool force) override {
-      unused(logTime);
-      entries.emplace_back(TestLogEntry{cat, std::string{msg.data(), msg.size()}, force});
+    unused(logTime);
+    entries.emplace_back(TestLogEntry{cat, std::string{msg.data(), msg.size()}, force});
   };
 
   std::vector<TestLogEntry> entries;
@@ -40,20 +40,20 @@ struct TestLogHandler : LogHandler {
 
 ////////////////////////////////////////////////////////////////////////////////
 TEST(LoggerTest, basic) {
-    auto handler = std::make_shared<TestLogHandler>();
-    Logger logger(handler);
-    logger.info("hello");
-    logger.debugf("hello={}", "goodbye");
+  auto handler = std::make_shared<TestLogHandler>();
+  Logger logger(handler);
+  logger.info("hello");
+  logger.debugf("hello={}", "goodbye");
 
-    ASSERT_EQ(2, handler->entries.size());
+  ASSERT_EQ(2, handler->entries.size());
 
-    ASSERT_EQ(std::string{"hello"}, handler->entries[0].msg);
-    ASSERT_EQ(LoggerCategory::Info, handler->entries[0].cat);
-    ASSERT_EQ(false, handler->entries[0].force);
+  ASSERT_EQ(std::string{"hello"}, handler->entries[0].msg);
+  ASSERT_EQ(LoggerCategory::Info, handler->entries[0].cat);
+  ASSERT_EQ(false, handler->entries[0].force);
 
-    ASSERT_EQ(std::string{"hello=goodbye"}, handler->entries[1].msg);
-    ASSERT_EQ(LoggerCategory::Debug, handler->entries[1].cat);
-    ASSERT_EQ(false, handler->entries[1].force);
+  ASSERT_EQ(std::string{"hello=goodbye"}, handler->entries[1].msg);
+  ASSERT_EQ(LoggerCategory::Debug, handler->entries[1].cat);
+  ASSERT_EQ(false, handler->entries[1].force);
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

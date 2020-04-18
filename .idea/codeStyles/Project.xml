@@ -1,0 +1,87 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <option name="AUTODETECT_INDENTS" value="false" />
+    <option name="RIGHT_MARGIN" value="150" />
+    <option name="FORMATTER_TAGS_ENABLED" value="true" />
+    <option name="FORMATTER_ON_TAG" value="clang-format on" />
+    <option name="FORMATTER_OFF_TAG" value="clang-format off" />
+    <CMakeCodeStyleSettings>
+      <option name="FORCE_COMMANDS_CASE" value="1" />
+    </CMakeCodeStyleSettings>
+    <Objective-C>
+      <option name="INDENT_NAMESPACE_MEMBERS" value="0" />
+      <option name="KEEP_STRUCTURES_IN_ONE_LINE" value="true" />
+      <option name="KEEP_CASE_EXPRESSIONS_IN_ONE_LINE" value="true" />
+      <option name="KEEP_NESTED_NAMESPACES_IN_ONE_LINE" value="true" />
+      <option name="FUNCTION_BRACE_PLACEMENT" value="5" />
+      <option name="SPACE_BEFORE_TEMPLATE_DECLARATION_LT" value="true" />
+      <option name="SPACE_BEFORE_POINTER_IN_DECLARATION" value="false" />
+      <option name="SPACE_AFTER_POINTER_IN_DECLARATION" value="true" />
+      <option name="SPACE_BEFORE_REFERENCE_IN_DECLARATION" value="false" />
+      <option name="SPACE_AFTER_REFERENCE_IN_DECLARATION" value="true" />
+      <option name="TAG_PREFIX_OF_LINE_COMMENT" value="AT" />
+      <option name="GENERATE_OPERATORS_AS_MEMBERS" value="false" />
+      <option name="NAMESPACES_NAMING_CONVENTION">
+        <value prefix="" style="SNAKE_CASE" suffix="" />
+      </option>
+      <option name="CLASSES_AND_STRUCTS_NAMING_CONVENTION">
+        <value prefix="" style="PASCAL_CASE" suffix="" />
+      </option>
+      <option name="ENUMS_NAMING_CONVENTION">
+        <value prefix="" style="PASCAL_CASE" suffix="" />
+      </option>
+      <option name="ENUMERATORS_NAMING_CONVENTION">
+        <value prefix="k" style="PASCAL_CASE" suffix="" />
+      </option>
+      <option name="TYPEDEFS_NAMING_CONVENTION">
+        <value prefix="" style="PASCAL_CASE" suffix="" />
+      </option>
+      <option name="UNIONS_NAMING_CONVENTION">
+        <value prefix="" style="PASCAL_CASE" suffix="" />
+      </option>
+      <option name="FIELDS_NAMING_CONVENTION">
+        <value prefix="_" style="CAMEL_CASE" suffix="" />
+      </option>
+      <option name="GLOBAL_VARIABLES_NAMING_CONVENTION">
+        <value prefix="g" style="PASCAL_CASE" suffix="" />
+      </option>
+    </Objective-C>
+    <Objective-C-extensions>
+      <option name="TAG_PREFIX_OF_LINE_COMMENT" value="AT" />
+      <extensions>
+        <pair source="cpp" header="h" fileNamingConvention="SNAKE_CASE" />
+        <pair source="c" header="h" fileNamingConvention="NONE" />
+      </extensions>
+    </Objective-C-extensions>
+    <XML>
+      <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
+    </XML>
+    <clangFormatSettings>
+      <option name="ENABLED" value="true" />
+    </clangFormatSettings>
+    <editorconfig>
+      <option name="ENABLED" value="false" />
+    </editorconfig>
+    <codeStyleSettings language="CMake">
+      <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
+      <option name="SPACE_BEFORE_IF_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_WHILE_PARENTHESES" value="false" />
+      <option name="SPACE_BEFORE_FOR_PARENTHESES" value="false" />
+      <indentOptions>
+        <option name="CONTINUATION_INDENT_SIZE" value="4" />
+      </indentOptions>
+    </codeStyleSettings>
+    <codeStyleSettings language="ObjectiveC">
+      <option name="BLANK_LINES_AROUND_CLASS" value="0" />
+      <option name="BLANK_LINES_AROUND_METHOD" value="0" />
+      <option name="BLANK_LINES_AROUND_METHOD_IN_INTERFACE" value="0" />
+      <option name="CLASS_BRACE_STYLE" value="2" />
+      <option name="ALIGN_MULTILINE_ARRAY_INITIALIZER_EXPRESSION" value="false" />
+      <option name="SPACE_BEFORE_SWITCH_LBRACE" value="false" />
+      <indentOptions>
+        <option name="CONTINUATION_INDENT_SIZE" value="4" />
+        <option name="USE_TAB_CHARACTER" value="true" />
+      </indentOptions>
+    </codeStyleSettings>
+  </code_scheme>
+</component>

@@ -26,7 +26,7 @@
 
 // As usual... minimal testing here... real testing TODO
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 TEST(LruCacheTest, lruBasic) {
   LruCache<int, std::string> lru;
@@ -305,5 +305,5 @@ TEST(LruCacheTest, copyCacheMoveAndCopy) {
   }
 #endif
 }
-
-};  // namespace sw
+}
+;  // namespace sw

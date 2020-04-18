@@ -37,7 +37,7 @@
 /// Contains useful miscellaneous functions
 ////////////////////////////////////////////////////////////////////////////////
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 ////////////////////////////////////////////////////////////////////////////////
 /// OS neutral localtime
@@ -239,5 +239,5 @@ public:
     return lhs;                                                                           \
   }                                                                                       \
   static_assert(true, "Put a semicolon after the macro definition!")
-
-};  // namespace sw
+}
+;  // namespace sw

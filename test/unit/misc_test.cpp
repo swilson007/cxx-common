@@ -16,14 +16,14 @@
 /// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
-#include <sw/misc.h>
 #include <sw/fixed_width_int_literals.h>
+#include <sw/misc.h>
 
 #include <gtest/gtest.h>
 
 #include <strstream>
 
-namespace sw {
+SW_NAMESPACE_BEGIN
 
 using namespace sw::intliterals;
 
@@ -61,4 +61,4 @@ TEST(MiscTest, podWrapperTest) {
   ASSERT_EQ(7, a);
 }
 
-}  // namespace sw
+SW_NAMESPACE_END

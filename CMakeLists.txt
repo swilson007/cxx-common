@@ -5,6 +5,8 @@ project(sw-cxx-common)
 
 # Conan support for packages
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake OPTIONAL)
+# Ensure conan modules are found earlier than others
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOS TRUE)
