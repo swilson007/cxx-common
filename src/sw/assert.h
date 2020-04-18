@@ -64,11 +64,11 @@ inline void unused(const T&) noexcept {}
 #  endif
 #endif
 
-#define SW_IGNORE_EXPRESSION(expr_) do { if (false && (expr_)) ::sw::nop(); } while (false)
 #define SW_IGNORE_EXPRESSION(expr_) \
   do {                              \
     if (false && (expr_))           \
       ::sw::nop();                  \
+  } while (false)
 
 ////////////////////////////////////////////////////////////////////////////////
 /// SW_ASSERT is auto-enabled for debug builds while disabled for other builds.
